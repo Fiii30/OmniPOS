@@ -47,6 +47,8 @@ const updateProductSchema = z.object({
 
 // GET /api/products
 // Mengambil semua produk.
+// GET /api/products
+// Mengambil daftar produk, dengan opsi pencarian dan filter stok rendah.
 router.get(
   "/",
 
@@ -56,15 +58,44 @@ router.get(
   // ADMIN dan STAFF boleh melihat produk.
   roleMiddleware(["ADMIN", "STAFF"]),
 
-  async (_req, res) => {
+  async (req, res) => {
     try {
       // Mengambil seluruh produk dari tabel products.
       const products = await db.orm.public.Product.all();
 
-      // Mengirim daftar produk ke Postman/frontend.
+      // Mengambil kata pencarian dari query URL.
+      const search = req.query.search;
+
+      // Mengambil opsi filter stok rendah dari query URL.
+      const lowStock = req.query.lowStock;
+
+      // Menyimpan hasil produk setelah difilter.
+      let filteredProducts = products;
+
+      // Jika ada parameter search.
+      if (search) {
+        // Mengubah nilai query menjadi string dan huruf kecil.
+        const keyword = String(search).toLowerCase();
+
+        // Menyaring produk yang namanya mengandung kata pencarian.
+        filteredProducts = filteredProducts.filter((product) =>
+          product.name.toLowerCase().includes(keyword),
+        );
+      }
+
+      // Jika ada parameter lowStock=true.
+      if (lowStock === "true") {
+        // Menyaring produk dengan stok 5 atau kurang.
+        filteredProducts = filteredProducts.filter(
+          (product) => product.stock <= 5,
+        );
+      }
+
+      // Mengirim daftar produk hasil filter.
       return res.json({
         message: "Daftar produk berhasil diambil",
-        products,
+        total: filteredProducts.length,
+        products: filteredProducts,
       });
     } catch (error: any) {
       // Mengirim error jika query database gagal.

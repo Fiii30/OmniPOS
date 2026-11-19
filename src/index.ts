@@ -21,6 +21,8 @@ import { roleMiddleware } from "./middleware/role";
 import { db } from "./prisma/db";
 import productRoutes from "./routes/product";
 import orderRoutes from "./routes/order";
+import userRoutes from "./routes/user";
+import reportRoutes from "./routes/report";
 
 // Membuat aplikasi Express
 const app = express();
@@ -35,6 +37,8 @@ app.use(express.json());
 app.use("/api/auth", authRoute);
 app.use("/api/products", productRoute);
 app.use("/api/orders", orderRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/reports", reportRoutes);
 
 // Endpoint khusus ADMIN
 app.get(
