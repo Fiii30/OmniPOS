@@ -1,3 +1,40 @@
+# Dependency
 node_modules/
-dist/
+.pnpm-store/
+
+# Environment variables dan rahasia
 .env
+.env.*
+!.env.example
+
+# Build output
+dist/
+build/
+out/
+*.tsbuildinfo
+
+# Log
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor dan sistem
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# Prisma
+prisma/*.db
+prisma/*.db-journal
+
+# Testing dan coverage
+coverage/
+.nyc_output/
+
+# Cache
+.cache/
+.parcel-cache/
