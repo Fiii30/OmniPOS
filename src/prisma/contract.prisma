@@ -1,0 +1,74 @@
+// use prisma-8
+
+enum Role {
+  ADMIN
+  STAFF
+}
+
+model User {
+  id        String   @id @onCreate(cuid(2))
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(STAFF)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @onCreate(now())
+  updatedAt DateTime @onCreate(now()) @onUpdate(now())
+
+  @@map("users")
+}
+
+model Product {
+  id String @id @onCreate(cuid(2))
+  name String
+  price Int
+  stock Int
+  isActive Boolean @default(true)
+  createdAt DateTime @onCreate(now())
+  updatedAt DateTime @onCreate(now()) @onUpdate(now())
+
+  @@map("products")
+}
+
+model Order {
+  id        String   @id @onCreate(cuid(2))
+  userId    String
+  total     Int
+  createdAt DateTime @onCreate(now())
+  updatedAt DateTime @onCreate(now()) @onUpdate(now())
+
+
+  // Order ini dibuat oleh user tertentu.
+  user User @relation(fields: [userId], references: [id])
+
+
+  // Satu order bisa memiliki banyak order item.
+  items OrderItem[]
+
+
+  @@map("orders")
+}
+
+
+model OrderItem {
+  id          String   @id @onCreate(cuid(2))
+  orderId     String
+  productId   String
+  productName String
+  price       Int
+  quantity    Int
+  subtotal    Int
+  createdAt   DateTime @onCreate(now())
+  updatedAt   DateTime @onCreate(now()) @onUpdate(now())
+
+
+  // Order item ini milik satu order.
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+
+  // Order item ini merujuk ke satu produk.
+  product Product @relation(fields: [productId], references: [id])
+
+
+  @@map("order_items")
+}
