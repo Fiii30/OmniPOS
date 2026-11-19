@@ -153,7 +153,8 @@
   .omni-primary-button {
     @apply h-12 rounded-xl bg-primary font-semibold text-primary-foreground;
     @apply transition hover:bg-blue-700 disabled:opacity-60;
-
+    padding-bottom: 1.4rem;
+    padding-top: 1.4rem;
     box-shadow: 0 8px 18px -8px rgb(37 99 235 / 65%);
   }
 

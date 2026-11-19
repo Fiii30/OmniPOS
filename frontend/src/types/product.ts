@@ -1,5 +1,3 @@
-// Tipe data produk yang dikirim dari backend.
-
 export type Product = {
   id: string;
   name: string;

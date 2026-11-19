@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { ComponentProps } from "react";
 import { isAxiosError } from "axios";
+import { useNavigate } from "react-router";
 
 import {
   ArrowRight,
@@ -25,9 +26,7 @@ import { Card, CardContent } from "@/components/ui/card";
 
 import { loginUser } from "@/api/authApi";
 
-type LoginSubmitHandler = NonNullable<
-  ComponentProps<"form">["onSubmit"]
->;
+type LoginSubmitHandler = NonNullable<ComponentProps<"form">["onSubmit"]>;
 
 const features = [
   {
@@ -46,7 +45,6 @@ const features = [
     description: "Antarmuka sederhana untuk kegiatan operasional toko.",
   },
 ];
-
 
 function BrandingPanel() {
   return (
@@ -83,8 +81,8 @@ function BrandingPanel() {
         </h1>
 
         <p className="mt-5 max-w-xl text-base leading-relaxed text-blue-100">
-          Bantu tim melayani pelanggan dengan cepat, mencatat penjualan,
-          dan mengelola inventori dalam satu aplikasi.
+          Bantu tim melayani pelanggan dengan cepat, mencatat penjualan, dan
+          mengelola inventori dalam satu aplikasi.
         </p>
 
         <div className="mt-7 grid grid-cols-3 gap-3">
@@ -140,12 +138,12 @@ export default function LoginPage() {
       localStorage.setItem("token", response.token);
       localStorage.setItem("user", JSON.stringify(response.user));
 
-      setIsSuccess(true);
+      navigate("/products", { replace: true });
     } catch (error: unknown) {
       if (isAxiosError<{ message?: string }>(error)) {
         setError(
           error.response?.data?.message ??
-            "Tidak dapat terhubung ke server. Pastikan backend aktif."
+            "Tidak dapat terhubung ke server. Pastikan backend aktif.",
         );
       } else {
         setError("Terjadi kesalahan. Silakan coba lagi.");
@@ -154,6 +152,8 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
+
+  const navigate = useNavigate();
 
   return (
     <main className="grid min-h-screen bg-background lg:grid-cols-[1.1fr_0.9fr]">
@@ -165,9 +165,7 @@ export default function LoginPage() {
             <Monitor className="size-6" />
           </div>
 
-          <span className="text-2xl font-bold tracking-tight">
-            OmniPOS
-          </span>
+          <span className="text-2xl font-bold tracking-tight">OmniPOS</span>
         </div>
 
         <div className="w-full max-w-md">
