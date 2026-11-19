@@ -1,0 +1,183 @@
+@import "tailwindcss";
+
+/* Mendukung class dark jika nanti dibutuhkan. */
+@custom-variant dark (&:is(.dark *));
+
+/* Menghubungkan variabel CSS dengan utility Tailwind. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-destructive: var(--destructive);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* Warna utama OmniPOS. */
+:root {
+  --background: #f7f9fc;
+  --foreground: #172033;
+
+  --card: #ffffff;
+  --card-foreground: #172033;
+
+  --popover: #ffffff;
+  --popover-foreground: #172033;
+
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+
+  --secondary: #eef4ff;
+  --secondary-foreground: #2455a5;
+
+  --muted: #f1f5f9;
+  --muted-foreground: #728096;
+
+  --accent: #eaf3ff;
+  --accent-foreground: #1d4ed8;
+
+  --destructive: #dc3545;
+
+  --border: #e4e9f1;
+  --input: #d8dfeb;
+  --ring: #2563eb;
+
+  --radius: 0.875rem;
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: #334155;
+  --sidebar-primary: #2563eb;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #eef4ff;
+  --sidebar-accent-foreground: #2563eb;
+  --sidebar-border: #e4e9f1;
+  --sidebar-ring: #2563eb;
+
+  --chart-1: #2563eb;
+  --chart-2: #06b6d4;
+  --chart-3: #10b981;
+  --chart-4: #f59e0b;
+  --chart-5: #8b5cf6;
+}
+
+/* Style dasar aplikasi. */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    min-height: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+
+    margin: 0;
+    min-width: 320px;
+    min-height: 100vh;
+    font-family: Arial, Helvetica, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  #root {
+    width: 100%;
+    min-height: 100vh;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+
+  ::selection {
+    background: #bfdbfe;
+    color: #172033;
+  }
+}
+
+/* Komponen visual bersama untuk halaman OmniPOS. */
+@layer components {
+  .omni-surface {
+    @apply rounded-2xl border border-border bg-card text-card-foreground;
+
+    box-shadow: 0 12px 35px -18px rgb(15 23 42 / 18%);
+  }
+
+  .omni-input {
+    @apply h-12 rounded-xl border-input bg-slate-50/80;
+  }
+
+  .omni-primary-button {
+    @apply h-12 rounded-xl bg-primary font-semibold text-primary-foreground;
+    @apply transition hover:bg-blue-700 disabled:opacity-60;
+
+    box-shadow: 0 8px 18px -8px rgb(37 99 235 / 65%);
+  }
+
+  .omni-auth-panel {
+    background:
+      radial-gradient(
+        ellipse at 15% 12%,
+        rgb(96 165 250 / 28%),
+        transparent 50%
+      ),
+      linear-gradient(
+        145deg,
+        #2563eb 0%,
+        #205ce1 55%,
+        #3730a3 100%
+      );
+  }
+
+  .omni-dot-pattern {
+    background-image: radial-gradient(
+      rgb(255 255 255 / 17%) 0.8px,
+      transparent 0.8px
+    );
+
+    background-size: 22px 22px;
+  }
+}
