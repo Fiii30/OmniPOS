@@ -33,3 +33,11 @@ export async function updateProduct(id: string, data: ProductInput) {
 
   return response.data;
 }
+
+export async function setProductActive(id: string, isActive: boolean) {
+  const response = await api.put(`/products/${id}`, {
+    isActive,
+  });
+
+  return response.data;
+}

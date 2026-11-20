@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 import { isAxiosError } from "axios";
-import { Package, Pencil, Plus, Search } from "lucide-react";
+import { Package, Pencil, Plus, Power, Search } from "lucide-react";
 import { useNavigate } from "react-router";
 
 import { getProducts } from "@/api/productApi";
 import { clearSession, getStoredUser } from "@/utils/auth";
-
 import type { Product } from "@/types/product";
 
 import ProductFormDialog from "../components/ProductFormDialog";
+import ProductStatusDialog from "../components/ProductStatusDialog";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+
+type StatusFilter = "all" | "active" | "inactive";
+
+const statusFilters: {
+  value: StatusFilter;
+  label: string;
+}[] = [
+  { value: "all", label: "Semua Produk" },
+  { value: "active", label: "Aktif" },
+  { value: "inactive", label: "Nonaktif" },
+];
 
 const rupiah = new Intl.NumberFormat("id-ID", {
   style: "currency",
@@ -37,16 +48,21 @@ export default function ProductsPage() {
 
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
   const [isFormOpen, setIsFormOpen] = useState(false);
+
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-  // Mengubah nilai ini akan memicu pengambilan ulang produk.
+  const [statusProduct, setStatusProduct] = useState<Product | null>(null);
+
   const [reloadKey, setReloadKey] = useState(0);
 
+  // Mengambil produk saat halaman dibuka atau setelah perubahan.
   useEffect(() => {
     let active = true;
 
@@ -57,7 +73,9 @@ export default function ProductsPage() {
       try {
         const data = await getProducts();
 
-        if (active) setProducts(data);
+        if (active) {
+          setProducts(data);
+        }
       } catch (error: unknown) {
         if (!active) return;
 
@@ -76,7 +94,9 @@ export default function ProductsPage() {
           setError("Terjadi kesalahan saat memuat produk.");
         }
       } finally {
-        if (active) setIsLoading(false);
+        if (active) {
+          setIsLoading(false);
+        }
       }
     }
 
@@ -111,16 +131,37 @@ export default function ProductsPage() {
     setReloadKey((value) => value + 1);
   }
 
+  function handleStatusSaved() {
+    if (!statusProduct) return;
+
+    setSuccess(
+      statusProduct.isActive
+        ? "Produk berhasil dinonaktifkan."
+        : "Produk berhasil diaktifkan.",
+    );
+
+    setStatusProduct(null);
+    setReloadKey((value) => value + 1);
+  }
+
   const keyword = search.trim().toLowerCase();
 
-  const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(keyword),
-  );
+  const filteredProducts = products.filter((product) => {
+    const matchesSearch = product.name.toLowerCase().includes(keyword);
+
+    const matchesStatus =
+      statusFilter === "all" ||
+      (statusFilter === "active" && product.isActive) ||
+      (statusFilter === "inactive" && !product.isActive);
+
+    return matchesSearch && matchesStatus;
+  });
 
   const columnCount = isAdmin ? 5 : 4;
 
   return (
     <div className="space-y-6">
+      {/* Judul halaman */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-xs font-semibold tracking-wider text-primary uppercase">
@@ -138,6 +179,7 @@ export default function ProductsPage() {
 
         {isAdmin && (
           <Button
+            type="button"
             className="omni-primary-button gap-2"
             onClick={openCreateForm}
           >
@@ -147,6 +189,7 @@ export default function ProductsPage() {
         )}
       </div>
 
+      {/* Pesan berhasil */}
       {success && (
         <p
           role="status"
@@ -156,7 +199,33 @@ export default function ProductsPage() {
         </p>
       )}
 
+      {/* Filter status */}
+      <div
+        className="flex flex-wrap gap-2"
+        role="group"
+        aria-label="Filter status produk"
+      >
+        {statusFilters.map((filter) => (
+          <Button
+            key={filter.value}
+            type="button"
+            variant="outline"
+            aria-pressed={statusFilter === filter.value}
+            onClick={() => setStatusFilter(filter.value)}
+            className={[
+              "rounded-xl",
+              statusFilter === filter.value
+                ? "border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-700"
+                : "bg-white text-slate-500",
+            ].join(" ")}
+          >
+            {filter.label}
+          </Button>
+        ))}
+      </div>
+
       <section className="omni-surface overflow-hidden">
+        {/* Header tabel dan pencarian */}
         <div className="flex flex-col gap-4 border-b p-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <div className="rounded-xl bg-blue-50 p-3 text-primary">
@@ -169,7 +238,7 @@ export default function ProductsPage() {
               <p className="text-xs text-muted-foreground">
                 {isLoading
                   ? "Memuat data..."
-                  : `${products.length} produk terdaftar`}
+                  : `${filteredProducts.length} dari ${products.length} produk`}
               </p>
             </div>
           </div>
@@ -197,6 +266,7 @@ export default function ProductsPage() {
             </p>
 
             <Button
+              type="button"
               variant="outline"
               onClick={() => setReloadKey((value) => value + 1)}
             >
@@ -234,8 +304,8 @@ export default function ProductsPage() {
                     colSpan={columnCount}
                     className="h-32 text-center text-muted-foreground"
                   >
-                    {keyword
-                      ? "Tidak ada produk yang cocok."
+                    {keyword || statusFilter !== "all"
+                      ? "Tidak ada produk yang sesuai pencarian atau filter."
                       : "Belum ada produk terdaftar."}
                   </TableCell>
                 </TableRow>
@@ -250,7 +320,7 @@ export default function ProductsPage() {
                       {rupiah.format(product.price)}
                     </TableCell>
 
-                    <TableCell>
+                    <TableCell className="whitespace-nowrap">
                       <span
                         className={
                           product.stock <= 5
@@ -275,18 +345,47 @@ export default function ProductsPage() {
                       </Badge>
                     </TableCell>
 
+                    {/* product tersedia karena masih di dalam map */}
                     {isAdmin && (
-                      <TableCell className="pr-5 text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => openEditForm(product)}
-                          aria-label={`Edit ${product.name}`}
-                          className="gap-2 rounded-lg border-blue-100 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
-                        >
-                          <Pencil className="size-3.5" />
-                          Edit
-                        </Button>
+                      <TableCell className="pr-5">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openEditForm(product)}
+                            aria-label={`Edit ${product.name}`}
+                            className="gap-2 rounded-lg border-blue-100 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                          >
+                            <Pencil className="size-3.5" />
+                            Edit
+                          </Button>
+
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSuccess("");
+                              setStatusProduct(product);
+                            }}
+                            aria-label={
+                              product.isActive
+                                ? `Nonaktifkan ${product.name}`
+                                : `Aktifkan ${product.name}`
+                            }
+                            className={[
+                              "gap-2 rounded-lg",
+                              product.isActive
+                                ? "border-amber-200 text-amber-700 hover:bg-amber-50 hover:text-amber-800"
+                                : "border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800",
+                            ].join(" ")}
+                          >
+                            <Power className="size-3.5" />
+
+                            {product.isActive ? "Nonaktifkan" : "Aktifkan"}
+                          </Button>
+                        </div>
                       </TableCell>
                     )}
                   </TableRow>
@@ -297,11 +396,21 @@ export default function ProductsPage() {
         )}
       </section>
 
+      {/* Dialog tambah/edit */}
       {isAdmin && isFormOpen && (
         <ProductFormDialog
           product={selectedProduct}
           onClose={() => setIsFormOpen(false)}
           onSaved={handleSaved}
+        />
+      )}
+
+      {/* Dialog aktif/nonaktif */}
+      {isAdmin && statusProduct && (
+        <ProductStatusDialog
+          product={statusProduct}
+          onClose={() => setStatusProduct(null)}
+          onSaved={handleStatusSaved}
         />
       )}
     </div>

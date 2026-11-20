@@ -21,8 +21,14 @@ const navigation = [
     adminOnly: false,
   },
   {
-    label: "Transaksi",
+    label: "Kasir",
     to: "/orders",
+    icon: Receipt,
+    adminOnly: false,
+  },
+  {
+    label: "Riwayat Transaksi",
+    to: "/order-history",
     icon: Receipt,
     adminOnly: false,
   },
