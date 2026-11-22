@@ -1,0 +1,299 @@
+[
+  {
+    "id": "column.public.orders.amountPaid",
+    "label": "Add column \"amountPaid\" to \"orders\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "amountPaid",
+        "table": "orders"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"amountPaid\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "orders",
+          "amountPaid"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"amountPaid\" on \"orders\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"amountPaid\"",
+        "sql": "ALTER TABLE \"public\".\"orders\" ADD COLUMN \"amountPaid\" int4"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"amountPaid\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "orders",
+          "amountPaid"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"amountPaid\" on \"orders\""
+        }
+      },
+      {
+        "description": "verify column \"amountPaid\" has type \"integer\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "orders",
+          "amountPaid",
+          "integer"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.orders.changeAmount",
+    "label": "Add column \"changeAmount\" to \"orders\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "changeAmount",
+        "table": "orders"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"changeAmount\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "orders",
+          "changeAmount"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"changeAmount\" on \"orders\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"changeAmount\"",
+        "sql": "ALTER TABLE \"public\".\"orders\" ADD COLUMN \"changeAmount\" int4"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"changeAmount\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "orders",
+          "changeAmount"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"changeAmount\" on \"orders\""
+        }
+      },
+      {
+        "description": "verify column \"changeAmount\" has type \"integer\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "orders",
+          "changeAmount",
+          "integer"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.orders.paidAt",
+    "label": "Add column \"paidAt\" to \"orders\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "paidAt",
+        "table": "orders"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"paidAt\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "orders",
+          "paidAt"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"paidAt\" on \"orders\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"paidAt\"",
+        "sql": "ALTER TABLE \"public\".\"orders\" ADD COLUMN \"paidAt\" timestamptz(3)"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"paidAt\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "orders",
+          "paidAt"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"paidAt\" on \"orders\""
+        }
+      },
+      {
+        "description": "verify column \"paidAt\" has type \"timestamp(3) with time zone\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "orders",
+          "paidAt",
+          "timestamp(3) with time zone"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.orders.paymentStatus",
+    "label": "Add column \"paymentStatus\" to \"orders\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "paymentStatus",
+        "table": "orders"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"paymentStatus\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "orders",
+          "paymentStatus"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"paymentStatus\" on \"orders\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"paymentStatus\"",
+        "sql": "ALTER TABLE \"public\".\"orders\" ADD COLUMN \"paymentStatus\" text DEFAULT 'UNPAID' NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"paymentStatus\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "orders",
+          "paymentStatus"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"paymentStatus\" on \"orders\""
+        }
+      },
+      {
+        "description": "verify column \"paymentStatus\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "orders",
+          "paymentStatus",
+          "text"
+        ]
+      },
+      {
+        "description": "verify column \"paymentStatus\" is NOT NULL",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "orders",
+          "paymentStatus",
+          "NO"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.orders.orders_paymentStatus_check_f9cb99b0",
+    "label": "Add check constraint \"orders_paymentStatus_check_f9cb99b0\" on \"orders\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "orders_paymentStatus_check_f9cb99b0",
+        "table": "orders"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"orders_paymentStatus_check_f9cb99b0\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "orders_paymentStatus_check_f9cb99b0",
+          "public",
+          "\"public\".\"orders\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"orders_paymentStatus_check_f9cb99b0\" on \"orders\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"orders_paymentStatus_check_f9cb99b0\"",
+        "sql": "ALTER TABLE \"public\".\"orders\" ADD CONSTRAINT \"orders_paymentStatus_check_f9cb99b0\" CHECK (\"paymentStatus\" IN ('UNPAID', 'PAID'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"orders_paymentStatus_check_f9cb99b0\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "orders_paymentStatus_check_f9cb99b0",
+          "public",
+          "\"public\".\"orders\"",
+          "c"
+        ]
+      }
+    ]
+  }
+]

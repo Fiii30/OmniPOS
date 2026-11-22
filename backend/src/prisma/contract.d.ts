@@ -23,7 +23,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'a602b13f97d1f15ead4f8a35758589b2104ce0ed806898efb738487509a64e5a'>;
+  StorageHashBase<'625713dea2e8ff57f18ddfe85a9f632e8de76462f10f35de38c200bb3771d098'>;
 export type ExecutionHash =
   ExecutionHashBase<'bccac161e7bc722d4453be48ebb0780b9e7d7776823dcd8b52d417d328ffa01e'>;
 export type ProfileHash =
@@ -278,6 +278,12 @@ type ParameterizedOutputTypeFunctions = PgParameterizedOutputTypes;
 type FieldTypeOverrides = {
   readonly public: {
     readonly models: {
+      readonly Order: {
+        readonly paymentStatus: {
+          readonly output: 'UNPAID' | 'PAID';
+          readonly input: 'UNPAID' | 'PAID';
+        };
+      };
       readonly User: {
         readonly role: { readonly output: 'ADMIN' | 'STAFF'; readonly input: 'ADMIN' | 'STAFF' };
       };
@@ -302,6 +308,12 @@ export type FieldInputTypes = FieldTypesFromDomain<
 >;
 type ColumnTypeOverrides = {
   readonly public: {
+    readonly orders: {
+      readonly paymentStatus: {
+        readonly output: 'UNPAID' | 'PAID';
+        readonly input: 'UNPAID' | 'PAID';
+      };
+    };
     readonly users: {
       readonly role: { readonly output: 'ADMIN' | 'STAFF'; readonly input: 'ADMIN' | 'STAFF' };
     };
@@ -324,8 +336,12 @@ export type StorageColumnInputTypes = ColumnTypesFromStorage<
 
 export namespace Models {
   export type public_Order = {
+    amountPaid: FieldOutputTypes['public']['Order']['amountPaid'];
+    changeAmount: FieldOutputTypes['public']['Order']['changeAmount'];
     createdAt: FieldOutputTypes['public']['Order']['createdAt'];
     id: FieldOutputTypes['public']['Order']['id'];
+    paidAt: FieldOutputTypes['public']['Order']['paidAt'];
+    paymentStatus: FieldOutputTypes['public']['Order']['paymentStatus'];
     total: FieldOutputTypes['public']['Order']['total'];
     updatedAt: FieldOutputTypes['public']['Order']['updatedAt'];
     userId: FieldOutputTypes['public']['Order']['userId'];
@@ -501,6 +517,18 @@ type ContractBase = Omit<
             };
             readonly orders: {
               columns: {
+                readonly amountPaid: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly changeAmount: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
                 readonly createdAt: {
                   readonly dataType: 'pg/timestamptz';
                   readonly codecId: 'pg/timestamptz-date@1';
@@ -512,6 +540,23 @@ type ContractBase = Omit<
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly paidAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: true;
+                  readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+                readonly paymentStatus: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'UNPAID'>;
+                  };
                   readonly many: false;
                 };
                 readonly total: {
@@ -683,6 +728,10 @@ type ContractBase = Omit<
             };
           };
           readonly valueSet: {
+            readonly OrderPaymentStatus: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['UNPAID', 'PAID'];
+            };
             readonly Role: {
               readonly kind: 'valueSet';
               readonly values: readonly ['ADMIN', 'STAFF'];
@@ -712,6 +761,14 @@ type ContractBase = Omit<
         readonly models: {
           readonly Order: {
             readonly fields: {
+              readonly amountPaid: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly changeAmount: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
               readonly createdAt: {
                 readonly nullable: false;
                 readonly type: {
@@ -721,6 +778,18 @@ type ContractBase = Omit<
                 };
               };
               readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly paidAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+              readonly paymentStatus: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
@@ -767,8 +836,12 @@ type ContractBase = Omit<
               readonly table: 'orders';
               readonly namespaceId: 'public';
               readonly fields: {
+                readonly amountPaid: { readonly column: 'amountPaid' };
+                readonly changeAmount: { readonly column: 'changeAmount' };
                 readonly createdAt: { readonly column: 'createdAt' };
                 readonly id: { readonly column: 'id' };
+                readonly paidAt: { readonly column: 'paidAt' };
+                readonly paymentStatus: { readonly column: 'paymentStatus' };
                 readonly total: { readonly column: 'total' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
                 readonly userId: { readonly column: 'userId' };
@@ -979,6 +1052,13 @@ type ContractBase = Omit<
           };
         };
         readonly enum: {
+          readonly OrderPaymentStatus: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'UNPAID'; readonly value: 'UNPAID' },
+              { readonly name: 'PAID'; readonly value: 'PAID' },
+            ];
+          };
           readonly Role: {
             readonly codecId: 'pg/text@1';
             readonly members: readonly [
@@ -988,6 +1068,10 @@ type ContractBase = Omit<
           };
         };
         readonly enumMemberTypes?: {
+          readonly OrderPaymentStatus: readonly [
+            { readonly name: 'UNPAID'; readonly value: 'UNPAID' },
+            { readonly name: 'PAID'; readonly value: 'PAID' },
+          ];
           readonly Role: readonly [
             { readonly name: 'ADMIN'; readonly value: 'ADMIN' },
             { readonly name: 'STAFF'; readonly value: 'STAFF' },

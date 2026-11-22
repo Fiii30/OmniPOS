@@ -5,6 +5,11 @@ enum Role {
   STAFF
 }
 
+enum OrderPaymentStatus {
+  UNPAID
+  PAID
+}
+
 model User {
   id        String   @id @onCreate(cuid(2))
   name      String
@@ -37,7 +42,11 @@ model Order {
   createdAt DateTime @onCreate(now())
   updatedAt DateTime @onCreate(now()) @onUpdate(now())
 
+  paymentStatus OrderPaymentStatus @default(UNPAID)
 
+  amountPaid   Int?
+  changeAmount Int?
+  paidAt       DateTime?
   // Order ini dibuat oleh user tertentu.
   user User @relation(fields: [userId], references: [id])
 

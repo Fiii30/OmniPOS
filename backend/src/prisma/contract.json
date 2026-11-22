@@ -25,6 +25,19 @@
     "namespaces": {
       "public": {
         "enum": {
+          "OrderPaymentStatus": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "UNPAID",
+                "value": "UNPAID"
+              },
+              {
+                "name": "PAID",
+                "value": "PAID"
+              }
+            ]
+          },
           "Role": {
             "codecId": "pg/text@1",
             "members": [
@@ -42,6 +55,20 @@
         "models": {
           "Order": {
             "fields": {
+              "amountPaid": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "changeAmount": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
               "createdAt": {
                 "nullable": false,
                 "type": {
@@ -57,6 +84,29 @@
                 "type": {
                   "codecId": "pg/text@1",
                   "kind": "scalar"
+                }
+              },
+              "paidAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              },
+              "paymentStatus": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "OrderPaymentStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
                 }
               },
               "total": {
@@ -119,11 +169,23 @@
             },
             "storage": {
               "fields": {
+                "amountPaid": {
+                  "column": "amountPaid"
+                },
+                "changeAmount": {
+                  "column": "changeAmount"
+                },
                 "createdAt": {
                   "column": "createdAt"
                 },
                 "id": {
                   "column": "id"
+                },
+                "paidAt": {
+                  "column": "paidAt"
+                },
+                "paymentStatus": {
+                  "column": "paymentStatus"
                 },
                 "total": {
                   "column": "total"
@@ -599,7 +661,24 @@
               "uniques": []
             },
             "orders": {
+              "checks": [
+                {
+                  "expression": "\"paymentStatus\" IN ('UNPAID', 'PAID')",
+                  "name": "orders_paymentStatus_check_f9cb99b0",
+                  "prefix": "orders_paymentStatus_check"
+                }
+              ],
               "columns": {
+                "amountPaid": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": true
+                },
+                "changeAmount": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": true
+                },
                 "createdAt": {
                   "codecId": "pg/timestamptz-date@1",
                   "dataType": "pg/timestamptz",
@@ -612,6 +691,29 @@
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
                   "nullable": false
+                },
+                "paidAt": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 3
+                  }
+                },
+                "paymentStatus": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": "UNPAID"
+                  },
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "OrderPaymentStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
                 },
                 "total": {
                   "codecId": "pg/int4@1",
@@ -814,6 +916,13 @@
             }
           },
           "valueSet": {
+            "OrderPaymentStatus": {
+              "kind": "valueSet",
+              "values": [
+                "UNPAID",
+                "PAID"
+              ]
+            },
             "Role": {
               "kind": "valueSet",
               "values": [
@@ -827,7 +936,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "a602b13f97d1f15ead4f8a35758589b2104ce0ed806898efb738487509a64e5a"
+    "storageHash": "625713dea2e8ff57f18ddfe85a9f632e8de76462f10f35de38c200bb3771d098"
   },
   "execution": {
     "executionHash": "bccac161e7bc722d4453be48ebb0780b9e7d7776823dcd8b52d417d328ffa01e",

@@ -1,4 +1,5 @@
 import api from "./axios";
+import type { PayOrderInput, PayOrderResponse } from "@/types/order";
 
 import type {
   CreateOrderInput,
@@ -8,10 +9,7 @@ import type {
 } from "@/types/order";
 
 export async function createOrder(data: CreateOrderInput) {
-  const response = await api.post<CreateOrderResponse>(
-    "/orders",
-    data
-  );
+  const response = await api.post<CreateOrderResponse>("/orders", data);
 
   return response.data;
 }
@@ -27,7 +25,16 @@ export async function getOrders() {
 
 export async function getOrderDetail(id: string) {
   const response = await api.get<OrderDetailResponse>(
-    `/orders/${encodeURIComponent(id)}`
+    `/orders/${encodeURIComponent(id)}`,
+  );
+
+  return response.data;
+}
+
+export async function payOrder(id: string, data: PayOrderInput) {
+  const response = await api.post<PayOrderResponse>(
+    `/orders/${encodeURIComponent(id)}/pay`,
+    data,
   );
 
   return response.data;

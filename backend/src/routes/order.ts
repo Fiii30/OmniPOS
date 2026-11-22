@@ -1,49 +1,35 @@
 // File ini berisi API untuk membuat dan melihat transaksi OmniPOS.
 
-// Import Router dari Express untuk membuat route order.
 import { Router } from "express";
-
-// Import zod untuk memvalidasi data transaksi.
 import { z } from "zod";
 
-// Import middleware agar user wajib login menggunakan JWT.
 import { authMiddleware } from "../middleware/auth";
-
-// Import middleware untuk membatasi akses berdasarkan role.
 import { roleMiddleware } from "../middleware/role";
-
-// Import koneksi database Prisma 8.
 import { db } from "../prisma/db";
 
-// Membuat router khusus order.
 const router = Router();
 
 // Aturan untuk satu produk yang dibeli.
 const orderItemSchema = z.object({
-  // ID produk yang ingin dibeli.
   productId: z.string().min(1),
-
-  // Jumlah produk yang dibeli, minimal 1.
   quantity: z.number().int().positive(),
 });
 
 // Aturan untuk membuat transaksi.
 const createOrderSchema = z.object({
-  // items harus berupa array berisi minimal 1 produk.
   items: z.array(orderItemSchema).min(1),
+});
+
+const payOrderSchema = z.object({
+  amountPaid: z.number().int().positive(),
 });
 
 // POST /api/orders
 // Membuat transaksi baru.
 router.post(
   "/",
-
-  // User harus login terlebih dahulu.
   authMiddleware,
-
-  // ADMIN dan STAFF boleh membuat transaksi.
   roleMiddleware(["ADMIN", "STAFF"]),
-
   async (req, res) => {
     try {
       // Memvalidasi data transaksi dari request body.
@@ -55,65 +41,70 @@ router.post(
           message: "User tidak ditemukan pada token",
         });
       }
-      // Mengambil ID user dari custom claim JWT.
+
       const userId = String((req.user as unknown as { userId: string }).userId);
+
+      // Menggabungkan produk yang sama menjadi satu item.
+      // Contoh: produk A dibeli 1 lalu 2 menjadi satu item sebanyak 3.
+      const quantityByProductId = new Map<string, number>();
+
+      for (const item of data.items) {
+        const productId = String(item.productId);
+        const currentQuantity = quantityByProductId.get(productId) ?? 0;
+
+        quantityByProductId.set(productId, currentQuantity + item.quantity);
+      }
 
       // Menjalankan beberapa query sebagai satu transaction.
       const order = await db.transaction(async (tx) => {
-        // Menyimpan total harga transaksi.
         let total = 0;
 
-        // Menyimpan data item yang akan dimasukkan ke OrderItem.
         const orderItems: {
           productId: string;
           productName: string;
           price: number;
           quantity: number;
           subtotal: number;
-
-          // Menyimpan stok produk sebelum dikurangi.
-          currentStock: number;
+          stockAfterPurchase: number;
         }[] = [];
 
         // Memeriksa dan menghitung setiap produk yang dibeli.
-        for (const item of data.items) {
-          // Mengubah ID produk menjadi string.
-          const productId = String(item.productId);
+        for (const [productId, quantity] of quantityByProductId) {
+          // Membaca dan mengunci baris produk sampai transaction selesai.
+          const productPlan = tx.sql.public.products
+            .select("id", "name", "price", "stock", "isActive")
+            .where((f, fns) => fns.eq(f.id, productId))
+            .forUpdate()
+            .build();
 
-          // Mencari produk berdasarkan ID.
-          const product = await tx.orm.public.Product.first({ id: productId });
+          const [product] = await tx.query(productPlan);
 
-          // Jika produk tidak ditemukan, transaction dibatalkan.
           if (!product) {
             throw new Error(`Produk dengan ID ${productId} tidak ditemukan`);
           }
 
-          // Jika produk tidak aktif, transaction dibatalkan.
           if (!product.isActive) {
             throw new Error(`Produk ${product.name} tidak aktif`);
           }
 
-          // Jika stok tidak cukup, transaction dibatalkan.
-          if (product.stock < item.quantity) {
-            throw new Error(`Stok produk ${product.name} tidak cukup`);
+          if (product.stock < quantity) {
+            throw new Error(
+              `Stok produk ${product.name} tidak cukup. Stok tersedia: ${product.stock}`,
+            );
           }
 
-          // Menghitung subtotal untuk produk ini.
-          const subtotal = product.price * item.quantity;
-
-          // Menambahkan subtotal ke total transaksi.
+          const subtotal = product.price * quantity;
           total += subtotal;
 
-          // Menyimpan data item sementara sebelum dibuat.
+          const stockAfterPurchase = product.stock - quantity;
+
           orderItems.push({
             productId: product.id,
             productName: product.name,
             price: product.price,
-            quantity: item.quantity,
+            quantity,
             subtotal,
-
-            // Menyimpan stok produk sebelum dikurangi.
-            currentStock: product.stock,
+            stockAfterPurchase,
           });
         }
 
@@ -125,7 +116,6 @@ router.post(
 
         // Membuat OrderItem dan mengurangi stok untuk setiap produk.
         for (const item of orderItems) {
-          // Membuat detail item transaksi.
           await tx.orm.public.OrderItem.create({
             orderId: createdOrder.id,
             productId: item.productId,
@@ -135,25 +125,38 @@ router.post(
             subtotal: item.subtotal,
           });
 
-          // Mengurangi stok produk sesuai jumlah yang dibeli.
-          await tx.orm.public.Product.where({ id: item.productId }).update({
-            stock: item.currentStock - item.quantity,
+          // Stok sudah terkunci oleh FOR UPDATE,
+          // sehingga nilai ini aman digunakan untuk update.
+          await tx.orm.public.Product.where({
+            id: item.productId,
+          }).update({
+            stock: item.stockAfterPurchase,
           });
         }
 
-        // Mengembalikan order yang sudah dibuat.
         return createdOrder;
       });
 
-      // Mengirim response berhasil membuat transaksi.
       return res.status(201).json({
         message: "Transaksi berhasil dibuat",
         order,
       });
-    } catch (error: any) {
-      // Mengirim error jika data tidak valid, stok kurang, atau database gagal.
-      return res.status(400).json({
-        message: error.message,
+    } catch (error: unknown) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          message: "Data transaksi tidak valid",
+          details: error.issues,
+        });
+      }
+
+      if (error instanceof Error) {
+        return res.status(400).json({
+          message: error.message,
+        });
+      }
+
+      return res.status(500).json({
+        message: "Terjadi kesalahan saat membuat transaksi",
       });
     }
   },
@@ -163,27 +166,25 @@ router.post(
 // Mengambil semua transaksi.
 router.get(
   "/",
-
-  // User harus login terlebih dahulu.
   authMiddleware,
-
-  // ADMIN dan STAFF boleh melihat transaksi.
   roleMiddleware(["ADMIN", "STAFF"]),
-
   async (_req, res) => {
     try {
-      // Mengambil semua order dari tabel orders.
       const orders = await db.orm.public.Order.all();
 
-      // Mengirim daftar transaksi.
       return res.json({
         message: "Daftar transaksi berhasil diambil",
         orders,
       });
-    } catch (error: any) {
-      // Mengirim error jika query database gagal.
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        return res.status(500).json({
+          message: error.message,
+        });
+      }
+
       return res.status(500).json({
-        message: error.message,
+        message: "Terjadi kesalahan saat mengambil transaksi",
       });
     }
   },
@@ -193,41 +194,104 @@ router.get(
 // Mengambil detail satu transaksi beserta item produknya.
 router.get(
   "/:id",
-
-  // User harus login terlebih dahulu.
   authMiddleware,
-
-  // ADMIN dan STAFF boleh melihat detail transaksi.
   roleMiddleware(["ADMIN", "STAFF"]),
-
   async (req, res) => {
     try {
-      // Mengambil ID order dari URL dan mengubahnya menjadi string.
       const id = String(req.params.id);
 
-      // Mencari order berdasarkan ID.
       const order = await db.orm.public.Order.first({ id });
 
-      // Jika transaksi tidak ditemukan.
       if (!order) {
         return res.status(404).json({
           message: "Transaksi tidak ditemukan",
         });
       }
 
-      // Mengambil semua item milik order ini.
-      const items = await db.orm.public.OrderItem.where({ orderId: id }).all();
+      const items = await db.orm.public.OrderItem.where({
+        orderId: id,
+      }).all();
 
-      // Mengirim detail transaksi beserta itemnya.
       return res.json({
         message: "Detail transaksi berhasil diambil",
         order,
         items,
       });
-    } catch (error: any) {
-      // Mengirim error jika query database gagal.
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        return res.status(500).json({
+          message: error.message,
+        });
+      }
+
       return res.status(500).json({
-        message: error.message,
+        message: "Terjadi kesalahan saat mengambil detail transaksi",
+      });
+    }
+  },
+);
+
+// POST /api/orders/:id/pay
+// ADMIN dan STAFF memproses pembayaran transaksi.
+router.post(
+  "/:id/pay",
+  authMiddleware,
+  roleMiddleware(["ADMIN", "STAFF"]),
+  async (req, res) => {
+    try {
+      const id = String(req.params.id);
+
+      const data = payOrderSchema.parse(req.body);
+
+      const order = await db.orm.public.Order.first({ id });
+
+      if (!order) {
+        return res.status(404).json({
+          message: "Transaksi tidak ditemukan",
+        });
+      }
+
+      if (order.paymentStatus === "PAID") {
+        return res.status(400).json({
+          message: "Transaksi ini sudah dibayar",
+        });
+      }
+
+      if (data.amountPaid < order.total) {
+        return res.status(400).json({
+          message: `Uang diterima kurang. Total: ${order.total}, diterima: ${data.amountPaid}`,
+        });
+      }
+
+      const changeAmount = data.amountPaid - order.total;
+
+      const updatedOrder = await db.orm.public.Order.where({ id }).update({
+        paymentStatus: "PAID",
+        amountPaid: data.amountPaid,
+        changeAmount,
+        paidAt: new Date(),
+      });
+
+      return res.json({
+        message: "Pembayaran berhasil diproses",
+        order: updatedOrder,
+      });
+    } catch (error: unknown) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          message: "Data pembayaran tidak valid",
+          details: error.issues,
+        });
+      }
+
+      if (error instanceof Error) {
+        return res.status(400).json({
+          message: error.message,
+        });
+      }
+
+      return res.status(500).json({
+        message: "Terjadi kesalahan saat memproses pembayaran",
       });
     }
   },

@@ -1,9 +1,16 @@
+export type OrderPaymentStatus = "UNPAID" | "PAID";
+
 export type Order = {
   id: string;
   userId: string;
   total: number;
   createdAt: string;
   updatedAt: string;
+
+  paymentStatus: OrderPaymentStatus;
+  amountPaid: number | null;
+  changeAmount: number | null;
+  paidAt: string | null;
 };
 
 export type CreateOrderInput = {
@@ -34,4 +41,13 @@ export type OrderDetailResponse = {
   message: string;
   order: Order;
   items: OrderItem[];
+};
+
+export type PayOrderInput = {
+  amountPaid: number;
+};
+
+export type PayOrderResponse = {
+  message: string;
+  order: Order;
 };

@@ -20,6 +20,7 @@ import type { Order } from "@/types/order";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import PaymentDialog from "../components/PaymentDialog";
 
 const rupiah = new Intl.NumberFormat("id-ID", {
   style: "currency",
@@ -47,6 +48,8 @@ export default function OrdersPage() {
 
   const [lastOrder, setLastOrder] = useState<Order | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+
+  const [paymentOrder, setPaymentOrder] = useState<Order | null>(null);
 
   // Mencegah pemanggilan submit berulang pada komponen ini.
   const submitLock = useRef(false);
@@ -183,6 +186,7 @@ export default function OrdersPage() {
       });
 
       setLastOrder(response.order);
+      setPaymentOrder(response.order);
       setCart([]);
 
       // Mengambil stok terbaru setelah transaksi berhasil.
@@ -491,6 +495,18 @@ export default function OrdersPage() {
 
               {isSubmitting ? "Menyimpan..." : "Simpan Transaksi"}
             </Button>
+
+            {paymentOrder && (
+              <PaymentDialog
+                key={paymentOrder.id}
+                order={paymentOrder}
+                onClose={() => setPaymentOrder(null)}
+                onPaid={(paidOrder) => {
+                  setLastOrder(paidOrder);
+                  setPaymentOrder(null);
+                }}
+              />
+            )}
           </div>
         </aside>
       </div>
