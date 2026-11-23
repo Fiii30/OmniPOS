@@ -21,6 +21,7 @@ import type { Order } from "@/types/order";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import PaymentDialog from "../components/PaymentDialog";
+import OrderDetailDialog from "../components/OrderDetailDialog";
 
 const rupiah = new Intl.NumberFormat("id-ID", {
   style: "currency",
@@ -50,6 +51,7 @@ export default function OrdersPage() {
   const [reloadKey, setReloadKey] = useState(0);
 
   const [paymentOrder, setPaymentOrder] = useState<Order | null>(null);
+  const [detailOrderId, setDetailOrderId] = useState<string | null>(null);
 
   // Mencegah pemanggilan submit berulang pada komponen ini.
   const submitLock = useRef(false);
@@ -253,6 +255,15 @@ export default function OrdersPage() {
           <p className="mt-1">
             Total dari server: {rupiah.format(lastOrder.total)}
           </p>
+
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full gap-2 rounded-xl"
+            onClick={() => setDetailOrderId(lastOrder.id)}
+          >
+            Lihat Detail Transaksi
+          </Button>
         </div>
       )}
 
@@ -507,6 +518,15 @@ export default function OrdersPage() {
                 }}
               />
             )}
+
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full gap-2 rounded-xl"
+              onClick={() => setDetailOrderId(lastOrder.id)}
+            >
+              Lihat Detail Transaksi
+            </Button>
           </div>
         </aside>
       </div>

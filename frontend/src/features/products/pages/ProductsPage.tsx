@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { isAxiosError } from "axios";
-import { Package, Pencil, Plus, Power, Search } from "lucide-react";
+import { Package, Pencil, Plus, Power, Search, Boxes } from "lucide-react";
 import { useNavigate } from "react-router";
 
 import { getProducts } from "@/api/productApi";
@@ -9,6 +9,7 @@ import type { Product } from "@/types/product";
 
 import ProductFormDialog from "../components/ProductFormDialog";
 import ProductStatusDialog from "../components/ProductStatusDialog";
+import StockFlowDialog from "../components/StockFlowDialog";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -59,6 +60,8 @@ export default function ProductsPage() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   const [statusProduct, setStatusProduct] = useState<Product | null>(null);
+
+  const [stockProduct, setStockProduct] = useState<Product | null>(null);
 
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -158,6 +161,12 @@ export default function ProductsPage() {
   });
 
   const columnCount = isAdmin ? 5 : 4;
+
+  function handleStockSaved() {
+    setSuccess("Perubahan stok berhasil dicatat.");
+    setStockProduct(null);
+    setReloadKey((value) => value + 1);
+  }
 
   return (
     <div className="space-y-6">
@@ -367,6 +376,21 @@ export default function ProductsPage() {
                             size="sm"
                             onClick={() => {
                               setSuccess("");
+                              setStockProduct(product);
+                            }}
+                            aria-label={`Kelola stok ${product.name}`}
+                            className="gap-2 rounded-lg border-blue-100 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                          >
+                            <Boxes className="size-3.5" />
+                            Stok
+                          </Button>
+
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSuccess("");
                               setStatusProduct(product);
                             }}
                             aria-label={
@@ -411,6 +435,15 @@ export default function ProductsPage() {
           product={statusProduct}
           onClose={() => setStatusProduct(null)}
           onSaved={handleStatusSaved}
+        />
+      )}
+
+      {isAdmin && stockProduct && (
+        <StockFlowDialog
+          key={stockProduct.id}
+          product={stockProduct}
+          onClose={() => setStockProduct(null)}
+          onSaved={handleStockSaved}
         />
       )}
     </div>

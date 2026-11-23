@@ -5,7 +5,7 @@ import { useNavigate } from "react-router";
 
 import { payOrder } from "@/api/orderApi";
 import { clearSession } from "@/utils/auth";
-import type { Order } from "@/types/order";
+import type { Order, PaymentMethod } from "@/types/order";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,15 @@ const rupiah = new Intl.NumberFormat("id-ID", {
   maximumFractionDigits: 0,
 });
 
+const paymentMethods: {
+  value: PaymentMethod;
+  label: string;
+}[] = [
+  { value: "CASH", label: "Cash" },
+  { value: "QRIS", label: "QRIS" },
+  { value: "TRANSFER_BANK", label: "Transfer Bank" },
+];
+
 type Props = {
   order: Order;
   onClose: () => void;
@@ -37,32 +46,43 @@ export default function PaymentDialog({
 }: Props) {
   const navigate = useNavigate();
 
+  const [method, setMethod] = useState<PaymentMethod>("CASH");
   const [amount, setAmount] = useState("");
+  const [referenceCode, setReferenceCode] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
   const amountPaid = Number(amount);
 
-  const isValidAmount =
-    amount !== "" &&
-    Number.isFinite(amountPaid) &&
-    amountPaid > 0;
+  const isCash = method === "CASH";
 
-  const changeAmount = isValidAmount
+  const isValidCashAmount =
+    !isCash ||
+    (amount !== "" &&
+      Number.isFinite(amountPaid) &&
+      amountPaid >= order.total);
+
+  const isValidReference =
+    isCash || referenceCode.trim().length > 0;
+
+  const canSubmit =
+    isValidCashAmount && isValidReference && !isSubmitting;
+
+  const changeAmount = isCash && isValidCashAmount
     ? amountPaid - order.total
     : 0;
 
-  const isEnough = isValidAmount && amountPaid >= order.total;
-
   async function handlePay() {
-    if (!isValidAmount || !isEnough || isSubmitting) return;
+    if (!canSubmit) return;
 
     setIsSubmitting(true);
     setError("");
 
     try {
       const response = await payOrder(order.id, {
-        amountPaid,
+        method,
+        amountPaid: isCash ? amountPaid : undefined,
+        referenceCode: isCash ? undefined : referenceCode.trim(),
       });
 
       onPaid(response.order);
@@ -101,7 +121,7 @@ export default function PaymentDialog({
           </DialogTitle>
 
           <DialogDescription>
-            Masukkan uang yang diterima dari pelanggan.
+            Pilih metode pembayaran dan masukkan data yang diperlukan.
           </DialogDescription>
         </DialogHeader>
 
@@ -118,43 +138,92 @@ export default function PaymentDialog({
 
           <div className="space-y-2">
             <label
-              htmlFor="amount-paid"
+              htmlFor="payment-method"
               className="text-sm font-medium"
             >
-              Uang Diterima
+              Metode Pembayaran
             </label>
 
-            <Input
-              id="amount-paid"
-              type="number"
-              min={0}
-              placeholder="Contoh: 50000"
-              value={amount}
+            <select
+              id="payment-method"
+              value={method}
               onChange={(event) => {
-                setAmount(event.target.value);
+                setMethod(event.target.value as PaymentMethod);
                 setError("");
               }}
-              className="rounded-xl bg-slate-50"
-            />
+              className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none focus:border-primary"
+            >
+              {paymentMethods.map((item) => (
+                <option key={item.value} value={item.value}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
           </div>
+
+          {isCash ? (
+            <div className="space-y-2">
+              <label
+                htmlFor="amount-paid"
+                className="text-sm font-medium"
+              >
+                Uang Diterima
+              </label>
+
+              <Input
+                id="amount-paid"
+                type="number"
+                min={0}
+                placeholder="Contoh: 50000"
+                value={amount}
+                onChange={(event) => {
+                  setAmount(event.target.value);
+                  setError("");
+                }}
+                className="rounded-xl bg-slate-50"
+              />
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <label
+                htmlFor="reference-code"
+                className="text-sm font-medium"
+              >
+                Kode Referensi
+              </label>
+
+              <Input
+                id="reference-code"
+                placeholder="Masukkan kode referensi"
+                value={referenceCode}
+                onChange={(event) => {
+                  setReferenceCode(event.target.value);
+                  setError("");
+                }}
+                className="rounded-xl bg-slate-50"
+              />
+            </div>
+          )}
 
           <div
             className={`rounded-xl p-4 text-sm ${
-              isEnough
+              isCash && changeAmount > 0
                 ? "bg-emerald-50 text-emerald-800"
                 : "bg-slate-50 text-muted-foreground"
             }`}
           >
             <p className="font-medium">
-              {isEnough ? "Kembalian" : "Status Uang"}
+              {isCash ? "Kembalian" : "Status Pembayaran"}
             </p>
 
             <p className="mt-1 font-bold">
-              {isEnough
-                ? rupiah.format(changeAmount)
-                : isValidAmount
-                  ? "Uang diterima masih kurang"
-                  : "Masukkan jumlah uang"}
+              {isCash
+                ? changeAmount > 0
+                  ? rupiah.format(changeAmount)
+                  : isValidCashAmount
+                    ? "Tidak ada kembalian"
+                    : "Uang diterima masih kurang"
+                : "Menunggu konfirmasi pembayaran"}
             </p>
           </div>
 
@@ -179,7 +248,7 @@ export default function PaymentDialog({
 
             <Button
               className="omni-primary-button flex-1 gap-2"
-              disabled={!isEnough || isSubmitting}
+              disabled={!canSubmit}
               onClick={() => void handlePay()}
             >
               <CheckCircle2 className="size-4" />

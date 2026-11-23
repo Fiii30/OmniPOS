@@ -1,0 +1,1216 @@
+[
+  {
+    "id": "dropCheckConstraint.orders.orders_paymentStatus_check_f9cb99b0",
+    "label": "Drop check constraint \"orders_paymentStatus_check_f9cb99b0\" on \"orders\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "orders_paymentStatus_check_f9cb99b0",
+        "table": "orders"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"orders_paymentStatus_check_f9cb99b0\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "orders_paymentStatus_check_f9cb99b0",
+          "public",
+          "\"public\".\"orders\""
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "constraint \"orders_paymentStatus_check_f9cb99b0\" on \"orders\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop check constraint \"orders_paymentStatus_check_f9cb99b0\"",
+        "sql": "ALTER TABLE \"public\".\"orders\" DROP CONSTRAINT \"orders_paymentStatus_check_f9cb99b0\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"orders_paymentStatus_check_f9cb99b0\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "orders_paymentStatus_check_f9cb99b0",
+          "public",
+          "\"public\".\"orders\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"orders_paymentStatus_check_f9cb99b0\" on \"orders\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "dropColumn.orders.amountPaid",
+    "label": "Drop column \"amountPaid\" from \"orders\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "amountPaid",
+        "table": "orders"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"amountPaid\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "orders",
+          "amountPaid"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"amountPaid\" on \"orders\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop column \"amountPaid\"",
+        "sql": "ALTER TABLE \"public\".\"orders\" DROP COLUMN \"amountPaid\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"amountPaid\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "orders",
+          "amountPaid"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"amountPaid\" on \"orders\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "dropColumn.orders.changeAmount",
+    "label": "Drop column \"changeAmount\" from \"orders\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "changeAmount",
+        "table": "orders"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"changeAmount\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "orders",
+          "changeAmount"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"changeAmount\" on \"orders\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop column \"changeAmount\"",
+        "sql": "ALTER TABLE \"public\".\"orders\" DROP COLUMN \"changeAmount\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"changeAmount\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "orders",
+          "changeAmount"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"changeAmount\" on \"orders\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "dropColumn.orders.paidAt",
+    "label": "Drop column \"paidAt\" from \"orders\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "paidAt",
+        "table": "orders"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"paidAt\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "orders",
+          "paidAt"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"paidAt\" on \"orders\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop column \"paidAt\"",
+        "sql": "ALTER TABLE \"public\".\"orders\" DROP COLUMN \"paidAt\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"paidAt\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "orders",
+          "paidAt"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"paidAt\" on \"orders\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "dropColumn.orders.paymentStatus",
+    "label": "Drop column \"paymentStatus\" from \"orders\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "paymentStatus",
+        "table": "orders"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"paymentStatus\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "orders",
+          "paymentStatus"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"paymentStatus\" on \"orders\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop column \"paymentStatus\"",
+        "sql": "ALTER TABLE \"public\".\"orders\" DROP COLUMN \"paymentStatus\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"paymentStatus\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "orders",
+          "paymentStatus"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"paymentStatus\" on \"orders\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.OrderStatusHistory",
+    "label": "Create table \"OrderStatusHistory\"",
+    "summary": "Creates table \"OrderStatusHistory\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "OrderStatusHistory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"OrderStatusHistory\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"OrderStatusHistory\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"OrderStatusHistory\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"OrderStatusHistory\"",
+        "sql": "CREATE TABLE \"public\".\"OrderStatusHistory\" (\n  \"changedById\" text NOT NULL,\n  \"createdAt\" timestamptz(3) NOT NULL,\n  \"id\" text NOT NULL,\n  \"newStatus\" text NOT NULL,\n  \"orderId\" text NOT NULL,\n  \"paymentId\" text,\n  \"previousStatus\" text NOT NULL,\n  \"reason\" text,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"OrderStatusHistory_newStatus_check_8d711279\" CHECK (\"newStatus\" IN ('PENDING', 'PAID', 'CANCEL_REQUESTED', 'CANCELLED')),\n  CONSTRAINT \"OrderStatusHistory_previousStatus_check_4d5c8719\" CHECK (\"previousStatus\" IN ('PENDING', 'PAID', 'CANCEL_REQUESTED', 'CANCELLED'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"OrderStatusHistory\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"OrderStatusHistory\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"OrderStatusHistory\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.Payment",
+    "label": "Create table \"Payment\"",
+    "summary": "Creates table \"Payment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "Payment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"Payment\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Payment\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"Payment\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"Payment\"",
+        "sql": "CREATE TABLE \"public\".\"Payment\" (\n  \"amount\" int4 NOT NULL,\n  \"changeAmount\" int4 DEFAULT 0 NOT NULL,\n  \"createdAt\" timestamptz(3) NOT NULL,\n  \"id\" text NOT NULL,\n  \"method\" text NOT NULL,\n  \"orderId\" text NOT NULL,\n  \"paidAt\" timestamptz(3),\n  \"referenceCode\" text,\n  \"status\" text DEFAULT 'PENDING' NOT NULL,\n  \"updatedAt\" timestamptz(3) NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"Payment_method_check_e7e01cde\" CHECK (\"method\" IN ('QRIS', 'TRANSFER_BANK', 'CASH')),\n  CONSTRAINT \"Payment_status_check_218a9bc3\" CHECK (\"status\" IN ('PENDING', 'SUCCEEDED', 'FAILED', 'REFUNDED'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"Payment\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"Payment\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"Payment\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.StockFlow",
+    "label": "Create table \"StockFlow\"",
+    "summary": "Creates table \"StockFlow\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "StockFlow"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"StockFlow\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"StockFlow\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"StockFlow\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"StockFlow\"",
+        "sql": "CREATE TABLE \"public\".\"StockFlow\" (\n  \"changedById\" text NOT NULL,\n  \"createdAt\" timestamptz(3) NOT NULL,\n  \"id\" text NOT NULL,\n  \"note\" text,\n  \"orderId\" text,\n  \"productId\" text NOT NULL,\n  \"quantity\" int4 NOT NULL,\n  \"stockAfter\" int4 NOT NULL,\n  \"stockBefore\" int4 NOT NULL,\n  \"type\" text NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"StockFlow_type_check_e543f6e3\" CHECK (\"type\" IN ('IN', 'OUT', 'ADJUSTMENT', 'RETURN'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"StockFlow\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"StockFlow\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"StockFlow\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "column.public.orders.status",
+    "label": "Add column \"status\" to \"orders\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "status",
+        "table": "orders"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"status\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "orders",
+          "status"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"status\" on \"orders\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"status\"",
+        "sql": "ALTER TABLE \"public\".\"orders\" ADD COLUMN \"status\" text DEFAULT 'PENDING' NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"status\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "orders",
+          "status"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"status\" on \"orders\""
+        }
+      },
+      {
+        "description": "verify column \"status\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "orders",
+          "status",
+          "text"
+        ]
+      },
+      {
+        "description": "verify column \"status\" is NOT NULL",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "orders",
+          "status",
+          "NO"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.orders.orders_status_check_a1959012",
+    "label": "Add check constraint \"orders_status_check_a1959012\" on \"orders\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "orders_status_check_a1959012",
+        "table": "orders"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"orders_status_check_a1959012\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "orders_status_check_a1959012",
+          "public",
+          "\"public\".\"orders\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"orders_status_check_a1959012\" on \"orders\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"orders_status_check_a1959012\"",
+        "sql": "ALTER TABLE \"public\".\"orders\" ADD CONSTRAINT \"orders_status_check_a1959012\" CHECK (\"status\" IN ('PENDING', 'PAID', 'CANCEL_REQUESTED', 'CANCELLED'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"orders_status_check_a1959012\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "orders_status_check_a1959012",
+          "public",
+          "\"public\".\"orders\"",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.OrderStatusHistory.OrderStatusHistory_changedById_idx_d6e6aadb",
+    "label": "Create index \"OrderStatusHistory_changedById_idx_d6e6aadb\" on \"OrderStatusHistory\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "OrderStatusHistory_changedById_idx_d6e6aadb",
+        "table": "OrderStatusHistory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"OrderStatusHistory_changedById_idx_d6e6aadb\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"OrderStatusHistory_changedById_idx_d6e6aadb\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"OrderStatusHistory_changedById_idx_d6e6aadb\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"OrderStatusHistory_changedById_idx_d6e6aadb\"",
+        "sql": "CREATE INDEX \"OrderStatusHistory_changedById_idx_d6e6aadb\" ON \"public\".\"OrderStatusHistory\" (\"changedById\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"OrderStatusHistory_changedById_idx_d6e6aadb\" exists on \"OrderStatusHistory\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"OrderStatusHistory_changedById_idx_d6e6aadb\"",
+          "i",
+          "I",
+          "\"public\".\"OrderStatusHistory\"",
+          "btree",
+          "[\"changedById\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.OrderStatusHistory.OrderStatusHistory_orderId_idx_d284871b",
+    "label": "Create index \"OrderStatusHistory_orderId_idx_d284871b\" on \"OrderStatusHistory\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "OrderStatusHistory_orderId_idx_d284871b",
+        "table": "OrderStatusHistory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"OrderStatusHistory_orderId_idx_d284871b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"OrderStatusHistory_orderId_idx_d284871b\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"OrderStatusHistory_orderId_idx_d284871b\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"OrderStatusHistory_orderId_idx_d284871b\"",
+        "sql": "CREATE INDEX \"OrderStatusHistory_orderId_idx_d284871b\" ON \"public\".\"OrderStatusHistory\" (\"orderId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"OrderStatusHistory_orderId_idx_d284871b\" exists on \"OrderStatusHistory\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"OrderStatusHistory_orderId_idx_d284871b\"",
+          "i",
+          "I",
+          "\"public\".\"OrderStatusHistory\"",
+          "btree",
+          "[\"orderId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.OrderStatusHistory.OrderStatusHistory_paymentId_idx_b2fe9a10",
+    "label": "Create index \"OrderStatusHistory_paymentId_idx_b2fe9a10\" on \"OrderStatusHistory\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "OrderStatusHistory_paymentId_idx_b2fe9a10",
+        "table": "OrderStatusHistory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"OrderStatusHistory_paymentId_idx_b2fe9a10\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"OrderStatusHistory_paymentId_idx_b2fe9a10\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"OrderStatusHistory_paymentId_idx_b2fe9a10\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"OrderStatusHistory_paymentId_idx_b2fe9a10\"",
+        "sql": "CREATE INDEX \"OrderStatusHistory_paymentId_idx_b2fe9a10\" ON \"public\".\"OrderStatusHistory\" (\"paymentId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"OrderStatusHistory_paymentId_idx_b2fe9a10\" exists on \"OrderStatusHistory\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"OrderStatusHistory_paymentId_idx_b2fe9a10\"",
+          "i",
+          "I",
+          "\"public\".\"OrderStatusHistory\"",
+          "btree",
+          "[\"paymentId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.Payment.Payment_orderId_idx_d284871b",
+    "label": "Create index \"Payment_orderId_idx_d284871b\" on \"Payment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Payment_orderId_idx_d284871b",
+        "table": "Payment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Payment_orderId_idx_d284871b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Payment_orderId_idx_d284871b\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"Payment_orderId_idx_d284871b\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Payment_orderId_idx_d284871b\"",
+        "sql": "CREATE INDEX \"Payment_orderId_idx_d284871b\" ON \"public\".\"Payment\" (\"orderId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Payment_orderId_idx_d284871b\" exists on \"Payment\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"Payment_orderId_idx_d284871b\"",
+          "i",
+          "I",
+          "\"public\".\"Payment\"",
+          "btree",
+          "[\"orderId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.StockFlow.StockFlow_changedById_idx_d6e6aadb",
+    "label": "Create index \"StockFlow_changedById_idx_d6e6aadb\" on \"StockFlow\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "StockFlow_changedById_idx_d6e6aadb",
+        "table": "StockFlow"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"StockFlow_changedById_idx_d6e6aadb\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"StockFlow_changedById_idx_d6e6aadb\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"StockFlow_changedById_idx_d6e6aadb\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"StockFlow_changedById_idx_d6e6aadb\"",
+        "sql": "CREATE INDEX \"StockFlow_changedById_idx_d6e6aadb\" ON \"public\".\"StockFlow\" (\"changedById\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"StockFlow_changedById_idx_d6e6aadb\" exists on \"StockFlow\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"StockFlow_changedById_idx_d6e6aadb\"",
+          "i",
+          "I",
+          "\"public\".\"StockFlow\"",
+          "btree",
+          "[\"changedById\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.StockFlow.StockFlow_orderId_idx_d284871b",
+    "label": "Create index \"StockFlow_orderId_idx_d284871b\" on \"StockFlow\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "StockFlow_orderId_idx_d284871b",
+        "table": "StockFlow"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"StockFlow_orderId_idx_d284871b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"StockFlow_orderId_idx_d284871b\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"StockFlow_orderId_idx_d284871b\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"StockFlow_orderId_idx_d284871b\"",
+        "sql": "CREATE INDEX \"StockFlow_orderId_idx_d284871b\" ON \"public\".\"StockFlow\" (\"orderId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"StockFlow_orderId_idx_d284871b\" exists on \"StockFlow\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"StockFlow_orderId_idx_d284871b\"",
+          "i",
+          "I",
+          "\"public\".\"StockFlow\"",
+          "btree",
+          "[\"orderId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.StockFlow.StockFlow_productId_idx_5858600a",
+    "label": "Create index \"StockFlow_productId_idx_5858600a\" on \"StockFlow\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "StockFlow_productId_idx_5858600a",
+        "table": "StockFlow"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"StockFlow_productId_idx_5858600a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"StockFlow_productId_idx_5858600a\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"StockFlow_productId_idx_5858600a\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"StockFlow_productId_idx_5858600a\"",
+        "sql": "CREATE INDEX \"StockFlow_productId_idx_5858600a\" ON \"public\".\"StockFlow\" (\"productId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"StockFlow_productId_idx_5858600a\" exists on \"StockFlow\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"StockFlow_productId_idx_5858600a\"",
+          "i",
+          "I",
+          "\"public\".\"StockFlow\"",
+          "btree",
+          "[\"productId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.OrderStatusHistory.OrderStatusHistory_orderId_fkey",
+    "label": "Add foreign key \"OrderStatusHistory_orderId_fkey\" on \"OrderStatusHistory\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "OrderStatusHistory_orderId_fkey",
+        "table": "OrderStatusHistory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"OrderStatusHistory_orderId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "OrderStatusHistory_orderId_fkey",
+          "public",
+          "\"public\".\"OrderStatusHistory\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"OrderStatusHistory_orderId_fkey\" on \"OrderStatusHistory\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"OrderStatusHistory_orderId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"OrderStatusHistory\"\nADD CONSTRAINT \"OrderStatusHistory_orderId_fkey\"\nFOREIGN KEY (\"orderId\")\nREFERENCES \"public\".\"orders\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"OrderStatusHistory_orderId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "OrderStatusHistory_orderId_fkey",
+          "public",
+          "\"public\".\"OrderStatusHistory\"",
+          "f",
+          "[\"orderId\"]",
+          "\"public\".\"orders\"",
+          "[\"id\"]",
+          "a",
+          "a"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.OrderStatusHistory.OrderStatusHistory_paymentId_fkey",
+    "label": "Add foreign key \"OrderStatusHistory_paymentId_fkey\" on \"OrderStatusHistory\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "OrderStatusHistory_paymentId_fkey",
+        "table": "OrderStatusHistory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"OrderStatusHistory_paymentId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "OrderStatusHistory_paymentId_fkey",
+          "public",
+          "\"public\".\"OrderStatusHistory\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"OrderStatusHistory_paymentId_fkey\" on \"OrderStatusHistory\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"OrderStatusHistory_paymentId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"OrderStatusHistory\"\nADD CONSTRAINT \"OrderStatusHistory_paymentId_fkey\"\nFOREIGN KEY (\"paymentId\")\nREFERENCES \"public\".\"Payment\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"OrderStatusHistory_paymentId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "OrderStatusHistory_paymentId_fkey",
+          "public",
+          "\"public\".\"OrderStatusHistory\"",
+          "f",
+          "[\"paymentId\"]",
+          "\"public\".\"Payment\"",
+          "[\"id\"]",
+          "a",
+          "a"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.OrderStatusHistory.OrderStatusHistory_changedById_fkey",
+    "label": "Add foreign key \"OrderStatusHistory_changedById_fkey\" on \"OrderStatusHistory\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "OrderStatusHistory_changedById_fkey",
+        "table": "OrderStatusHistory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"OrderStatusHistory_changedById_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "OrderStatusHistory_changedById_fkey",
+          "public",
+          "\"public\".\"OrderStatusHistory\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"OrderStatusHistory_changedById_fkey\" on \"OrderStatusHistory\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"OrderStatusHistory_changedById_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"OrderStatusHistory\"\nADD CONSTRAINT \"OrderStatusHistory_changedById_fkey\"\nFOREIGN KEY (\"changedById\")\nREFERENCES \"public\".\"users\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"OrderStatusHistory_changedById_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "OrderStatusHistory_changedById_fkey",
+          "public",
+          "\"public\".\"OrderStatusHistory\"",
+          "f",
+          "[\"changedById\"]",
+          "\"public\".\"users\"",
+          "[\"id\"]",
+          "a",
+          "a"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.Payment.Payment_orderId_fkey",
+    "label": "Add foreign key \"Payment_orderId_fkey\" on \"Payment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "Payment_orderId_fkey",
+        "table": "Payment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"Payment_orderId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Payment_orderId_fkey",
+          "public",
+          "\"public\".\"Payment\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"Payment_orderId_fkey\" on \"Payment\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"Payment_orderId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"Payment\"\nADD CONSTRAINT \"Payment_orderId_fkey\"\nFOREIGN KEY (\"orderId\")\nREFERENCES \"public\".\"orders\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"Payment_orderId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "Payment_orderId_fkey",
+          "public",
+          "\"public\".\"Payment\"",
+          "f",
+          "[\"orderId\"]",
+          "\"public\".\"orders\"",
+          "[\"id\"]",
+          "a",
+          "a"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.StockFlow.StockFlow_productId_fkey",
+    "label": "Add foreign key \"StockFlow_productId_fkey\" on \"StockFlow\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "StockFlow_productId_fkey",
+        "table": "StockFlow"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"StockFlow_productId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "StockFlow_productId_fkey",
+          "public",
+          "\"public\".\"StockFlow\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"StockFlow_productId_fkey\" on \"StockFlow\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"StockFlow_productId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"StockFlow\"\nADD CONSTRAINT \"StockFlow_productId_fkey\"\nFOREIGN KEY (\"productId\")\nREFERENCES \"public\".\"products\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"StockFlow_productId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "StockFlow_productId_fkey",
+          "public",
+          "\"public\".\"StockFlow\"",
+          "f",
+          "[\"productId\"]",
+          "\"public\".\"products\"",
+          "[\"id\"]",
+          "a",
+          "a"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.StockFlow.StockFlow_orderId_fkey",
+    "label": "Add foreign key \"StockFlow_orderId_fkey\" on \"StockFlow\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "StockFlow_orderId_fkey",
+        "table": "StockFlow"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"StockFlow_orderId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "StockFlow_orderId_fkey",
+          "public",
+          "\"public\".\"StockFlow\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"StockFlow_orderId_fkey\" on \"StockFlow\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"StockFlow_orderId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"StockFlow\"\nADD CONSTRAINT \"StockFlow_orderId_fkey\"\nFOREIGN KEY (\"orderId\")\nREFERENCES \"public\".\"orders\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"StockFlow_orderId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "StockFlow_orderId_fkey",
+          "public",
+          "\"public\".\"StockFlow\"",
+          "f",
+          "[\"orderId\"]",
+          "\"public\".\"orders\"",
+          "[\"id\"]",
+          "a",
+          "a"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.StockFlow.StockFlow_changedById_fkey",
+    "label": "Add foreign key \"StockFlow_changedById_fkey\" on \"StockFlow\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "StockFlow_changedById_fkey",
+        "table": "StockFlow"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"StockFlow_changedById_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "StockFlow_changedById_fkey",
+          "public",
+          "\"public\".\"StockFlow\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"StockFlow_changedById_fkey\" on \"StockFlow\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"StockFlow_changedById_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"StockFlow\"\nADD CONSTRAINT \"StockFlow_changedById_fkey\"\nFOREIGN KEY (\"changedById\")\nREFERENCES \"public\".\"users\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"StockFlow_changedById_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "StockFlow_changedById_fkey",
+          "public",
+          "\"public\".\"StockFlow\"",
+          "f",
+          "[\"changedById\"]",
+          "\"public\".\"users\"",
+          "[\"id\"]",
+          "a",
+          "a"
+        ]
+      }
+    ]
+  }
+]

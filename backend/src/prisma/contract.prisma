@@ -5,9 +5,31 @@ enum Role {
   STAFF
 }
 
-enum OrderPaymentStatus {
-  UNPAID
+enum PaymentMethod {
+  QRIS
+  TRANSFER_BANK
+  CASH
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+enum OrderStatus {
+  PENDING
   PAID
+  CANCEL_REQUESTED
+  CANCELLED
+}
+
+enum StockFlowType {
+  IN
+  OUT
+  ADJUSTMENT
+  RETURN
 }
 
 model User {
@@ -19,6 +41,8 @@ model User {
   isActive  Boolean  @default(true)
   createdAt DateTime @onCreate(now())
   updatedAt DateTime @onCreate(now()) @onUpdate(now())
+  statusHistories OrderStatusHistory[]
+  stockFlows      StockFlow[]
 
   @@map("users")
 }
@@ -31,6 +55,7 @@ model Product {
   isActive Boolean @default(true)
   createdAt DateTime @onCreate(now())
   updatedAt DateTime @onCreate(now()) @onUpdate(now())
+  stockFlows StockFlow[]
 
   @@map("products")
 }
@@ -42,11 +67,11 @@ model Order {
   createdAt DateTime @onCreate(now())
   updatedAt DateTime @onCreate(now()) @onUpdate(now())
 
-  paymentStatus OrderPaymentStatus @default(UNPAID)
+  status OrderStatus @default(PENDING)
 
-  amountPaid   Int?
-  changeAmount Int?
-  paidAt       DateTime?
+  payments        Payment[]
+  statusHistories OrderStatusHistory[]
+  stockFlows      StockFlow[]
   // Order ini dibuat oleh user tertentu.
   user User @relation(fields: [userId], references: [id])
 
@@ -80,4 +105,60 @@ model OrderItem {
 
 
   @@map("order_items")
+}
+
+model Payment {
+  id            String        @id @onCreate(uuid())
+  orderId       String
+  method        PaymentMethod
+  amount        Int
+  changeAmount  Int           @default(0)
+  status        PaymentStatus @default(PENDING)
+  referenceCode String?
+  paidAt        DateTime?
+  createdAt     DateTime      @onCreate(now())
+  updatedAt     temporal.UpdatedAt
+
+  order Order @relation(fields: [orderId], references: [id])
+
+  statusHistories OrderStatusHistory[]
+
+  @@index([orderId])
+}
+
+model OrderStatusHistory {
+  id             String       @id @onCreate(uuid())
+  orderId        String
+  paymentId      String?
+  previousStatus OrderStatus
+  newStatus      OrderStatus
+  changedById    String
+  reason         String?
+  createdAt      DateTime     @onCreate(now())
+
+  order   Order    @relation(fields: [orderId], references: [id])
+  payment Payment? @relation(fields: [paymentId], references: [id])
+  changedBy User   @relation(fields: [changedById], references: [id])
+
+  @@index([orderId])
+}
+
+model StockFlow {
+  id          String        @id @onCreate(uuid())
+  productId   String
+  orderId     String?
+  type        StockFlowType
+  quantity    Int
+  stockBefore Int
+  stockAfter  Int
+  changedById String
+  note        String?
+  createdAt   DateTime      @onCreate(now())
+
+  product   Product  @relation(fields: [productId], references: [id])
+  order     Order?   @relation(fields: [orderId], references: [id])
+  changedBy User     @relation(fields: [changedById], references: [id])
+
+  @@index([productId])
+  @@index([orderId])
 }

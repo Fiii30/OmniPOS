@@ -1,4 +1,4 @@
-// File ini berisi API untuk membuat dan melihat transaksi OmniPOS.
+// File ini berisi API untuk membuat, membayar, dan membatalkan transaksi OmniPOS.
 
 import { Router } from "express";
 import { z } from "zod";
@@ -20,32 +20,47 @@ const createOrderSchema = z.object({
   items: z.array(orderItemSchema).min(1),
 });
 
+// Aturan pembayaran transaksi.
 const payOrderSchema = z.object({
-  amountPaid: z.number().int().positive(),
+  method: z.enum(["QRIS", "TRANSFER_BANK", "CASH"]),
+  amountPaid: z.number().int().positive().optional(),
+  referenceCode: z.string().min(1).optional(),
 });
 
+// Aturan pengajuan pembatalan transaksi.
+const cancelRequestSchema = z.object({
+  reason: z.string().min(3),
+});
+
+// Aturan keputusan ADMIN atas pengajuan pembatalan.
+const cancelDecisionSchema = z.object({
+  action: z.enum(["APPROVE", "REJECT"]),
+  reason: z.string().min(3),
+});
+
+// Mengambil ID user dari token JWT.
+function getUserId(req: unknown): string {
+  const user = req as { user?: { userId?: string } };
+
+  if (!user.user?.userId) {
+    throw new Error("User tidak ditemukan pada token");
+  }
+
+  return String(user.user.userId);
+}
+
 // POST /api/orders
-// Membuat transaksi baru.
+// Membuat transaksi baru dan mencatat stok yang keluar.
 router.post(
   "/",
   authMiddleware,
   roleMiddleware(["ADMIN", "STAFF"]),
   async (req, res) => {
     try {
-      // Memvalidasi data transaksi dari request body.
       const data = createOrderSchema.parse(req.body);
-
-      // Mengambil ID user yang sedang login dari token JWT.
-      if (!req.user) {
-        return res.status(401).json({
-          message: "User tidak ditemukan pada token",
-        });
-      }
-
-      const userId = String((req.user as unknown as { userId: string }).userId);
+      const userId = getUserId(req);
 
       // Menggabungkan produk yang sama menjadi satu item.
-      // Contoh: produk A dibeli 1 lalu 2 menjadi satu item sebanyak 3.
       const quantityByProductId = new Map<string, number>();
 
       for (const item of data.items) {
@@ -55,7 +70,6 @@ router.post(
         quantityByProductId.set(productId, currentQuantity + item.quantity);
       }
 
-      // Menjalankan beberapa query sebagai satu transaction.
       const order = await db.transaction(async (tx) => {
         let total = 0;
 
@@ -65,12 +79,11 @@ router.post(
           price: number;
           quantity: number;
           subtotal: number;
+          stockBefore: number;
           stockAfterPurchase: number;
         }[] = [];
 
-        // Memeriksa dan menghitung setiap produk yang dibeli.
         for (const [productId, quantity] of quantityByProductId) {
-          // Membaca dan mengunci baris produk sampai transaction selesai.
           const productPlan = tx.sql.public.products
             .select("id", "name", "price", "stock", "isActive")
             .where((f, fns) => fns.eq(f.id, productId))
@@ -96,25 +109,22 @@ router.post(
           const subtotal = product.price * quantity;
           total += subtotal;
 
-          const stockAfterPurchase = product.stock - quantity;
-
           orderItems.push({
             productId: product.id,
             productName: product.name,
             price: product.price,
             quantity,
             subtotal,
-            stockAfterPurchase,
+            stockBefore: product.stock,
+            stockAfterPurchase: product.stock - quantity,
           });
         }
 
-        // Membuat order baru.
         const createdOrder = await tx.orm.public.Order.create({
           userId,
           total,
         });
 
-        // Membuat OrderItem dan mengurangi stok untuk setiap produk.
         for (const item of orderItems) {
           await tx.orm.public.OrderItem.create({
             orderId: createdOrder.id,
@@ -125,14 +135,33 @@ router.post(
             subtotal: item.subtotal,
           });
 
-          // Stok sudah terkunci oleh FOR UPDATE,
-          // sehingga nilai ini aman digunakan untuk update.
           await tx.orm.public.Product.where({
             id: item.productId,
           }).update({
             stock: item.stockAfterPurchase,
           });
+
+          // Mencatat stok yang keluar karena transaksi.
+          await tx.orm.public.StockFlow.create({
+            productId: item.productId,
+            orderId: createdOrder.id,
+            type: "OUT",
+            quantity: item.quantity,
+            stockBefore: item.stockBefore,
+            stockAfter: item.stockAfterPurchase,
+            changedById: userId,
+            note: "Stok keluar karena transaksi",
+          });
         }
+
+        // Mencatat order baru pada riwayat status.
+        await tx.orm.public.OrderStatusHistory.create({
+          orderId: createdOrder.id,
+          previousStatus: "PENDING",
+          newStatus: "PENDING",
+          changedById: userId,
+          reason: "Transaksi dibuat",
+        });
 
         return createdOrder;
       });
@@ -163,7 +192,6 @@ router.post(
 );
 
 // GET /api/orders
-// Mengambil semua transaksi.
 router.get(
   "/",
   authMiddleware,
@@ -191,7 +219,6 @@ router.get(
 );
 
 // GET /api/orders/:id
-// Mengambil detail satu transaksi beserta item produknya.
 router.get(
   "/:id",
   authMiddleware,
@@ -212,10 +239,20 @@ router.get(
         orderId: id,
       }).all();
 
+      const payments = await db.orm.public.Payment.where({
+        orderId: id,
+      }).all();
+
+      const histories = await db.orm.public.OrderStatusHistory.where({
+        orderId: id,
+      }).all();
+
       return res.json({
         message: "Detail transaksi berhasil diambil",
         order,
         items,
+        payments,
+        histories,
       });
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -240,8 +277,8 @@ router.post(
   async (req, res) => {
     try {
       const id = String(req.params.id);
-
       const data = payOrderSchema.parse(req.body);
+      const userId = getUserId(req);
 
       const order = await db.orm.public.Order.first({ id });
 
@@ -251,30 +288,91 @@ router.post(
         });
       }
 
-      if (order.paymentStatus === "PAID") {
+      if (order.status !== "PENDING") {
         return res.status(400).json({
-          message: "Transaksi ini sudah dibayar",
+          message: "Transaksi ini tidak dapat dibayar",
         });
       }
 
-      if (data.amountPaid < order.total) {
+      const existingPayments = await db.orm.public.Payment.where({
+        orderId: id,
+      }).all();
+
+      const hasSuccessfulPayment = existingPayments.some(
+        (payment) => payment.status === "SUCCEEDED",
+      );
+
+      if (hasSuccessfulPayment) {
         return res.status(400).json({
-          message: `Uang diterima kurang. Total: ${order.total}, diterima: ${data.amountPaid}`,
+          message: "Transaksi ini sudah memiliki pembayaran berhasil",
         });
       }
 
-      const changeAmount = data.amountPaid - order.total;
+      let amount = order.total;
+      let changeAmount = 0;
+      let referenceCode: string | null = null;
 
-      const updatedOrder = await db.orm.public.Order.where({ id }).update({
-        paymentStatus: "PAID",
-        amountPaid: data.amountPaid,
-        changeAmount,
-        paidAt: new Date(),
+      if (data.method === "CASH") {
+        if (!data.amountPaid) {
+          return res.status(400).json({
+            message: "Uang diterima wajib diisi untuk pembayaran cash",
+          });
+        }
+
+        if (data.amountPaid < order.total) {
+          return res.status(400).json({
+            message: `Uang diterima kurang. Total: ${order.total}, diterima: ${data.amountPaid}`,
+          });
+        }
+
+        amount = data.amountPaid;
+        changeAmount = data.amountPaid - order.total;
+      } else {
+        if (!data.referenceCode) {
+          return res.status(400).json({
+            message: "Kode referensi wajib diisi untuk QRIS atau transfer bank",
+          });
+        }
+
+        referenceCode = data.referenceCode;
+      }
+
+      const result = await db.transaction(async (tx) => {
+        const payment = await tx.orm.public.Payment.create({
+          orderId: id,
+          method: data.method,
+          amount,
+          changeAmount,
+          status: "SUCCEEDED",
+          referenceCode,
+          paidAt: new Date(),
+        });
+
+        const updatedOrder = await tx.orm.public.Order.where({
+          id,
+        }).update({
+          status: "PAID",
+        });
+
+        await tx.orm.public.OrderStatusHistory.create({
+          orderId: id,
+          paymentId: payment.id,
+          previousStatus: order.status,
+          newStatus: "PAID",
+          changedById: userId,
+          reason: `Pembayaran ${data.method} berhasil`,
+        });
+
+        return {
+          payment,
+          order: updatedOrder,
+        };
       });
 
       return res.json({
         message: "Pembayaran berhasil diproses",
-        order: updatedOrder,
+        payment: result.payment,
+        order: result.order,
       });
     } catch (error: unknown) {
       if (error instanceof z.ZodError) {
@@ -297,5 +395,236 @@ router.post(
   },
 );
 
-// Mengekspor router order agar bisa dipakai di src/index.ts.
+// POST /api/orders/:id/cancel-request
+// ADMIN dan STAFF mengajukan pembatalan transaksi.
+router.post(
+  "/:id/cancel-request",
+  authMiddleware,
+  roleMiddleware(["ADMIN", "STAFF"]),
+  async (req, res) => {
+    try {
+      const id = String(req.params.id);
+      const data = cancelRequestSchema.parse(req.body);
+      const userId = getUserId(req);
+
+      const order = await db.orm.public.Order.first({ id });
+
+      if (!order) {
+        return res.status(404).json({
+          message: "Transaksi tidak ditemukan",
+        });
+      }
+
+      if (order.status !== "PENDING" && order.status !== "PAID") {
+        return res.status(400).json({
+          message: "Transaksi ini tidak dapat diajukan untuk dibatalkan",
+        });
+      }
+
+      const result = await db.transaction(async (tx) => {
+        const updatedOrder = await tx.orm.public.Order.where({
+          id,
+        }).update({
+          status: "CANCEL_REQUESTED",
+        });
+
+        await tx.orm.public.OrderStatusHistory.create({
+          orderId: id,
+          previousStatus: order.status,
+          newStatus: "CANCEL_REQUESTED",
+          changedById: userId,
+          reason: data.reason,
+        });
+
+        return updatedOrder;
+      });
+
+      return res.json({
+        message: "Pengajuan pembatalan berhasil dikirim",
+        order: result,
+      });
+    } catch (error: unknown) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          message: "Data pengajuan pembatalan tidak valid",
+          details: error.issues,
+        });
+      }
+
+      if (error instanceof Error) {
+        return res.status(400).json({
+          message: error.message,
+        });
+      }
+
+      return res.status(500).json({
+        message: "Terjadi kesalahan saat mengajukan pembatalan",
+      });
+    }
+  },
+);
+
+// POST /api/orders/:id/cancel/decision
+// Hanya ADMIN yang dapat menyetujui atau menolak pembatalan.
+router.post(
+  "/:id/cancel/decision",
+  authMiddleware,
+  roleMiddleware(["ADMIN"]),
+  async (req, res) => {
+    try {
+      const id = String(req.params.id);
+      const data = cancelDecisionSchema.parse(req.body);
+      const userId = getUserId(req);
+
+      const order = await db.orm.public.Order.first({ id });
+
+      if (!order) {
+        return res.status(404).json({
+          message: "Transaksi tidak ditemukan",
+        });
+      }
+
+      if (order.status !== "CANCEL_REQUESTED") {
+        return res.status(400).json({
+          message: "Transaksi ini tidak sedang menunggu keputusan pembatalan",
+        });
+      }
+
+      if (data.action === "REJECT") {
+        const histories = await db.orm.public.OrderStatusHistory.where({
+          orderId: id,
+        }).all();
+
+        const cancelRequestHistory = histories
+          .slice()
+          .sort(
+            (a, b) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+          )
+          .find((history) => history.newStatus === "CANCEL_REQUESTED");
+
+        const previousStatus =
+          cancelRequestHistory?.previousStatus ?? "PENDING";
+
+        const result = await db.transaction(async (tx) => {
+          const updatedOrder = await tx.orm.public.Order.where({
+            id,
+          }).update({
+            status: previousStatus,
+          });
+
+          await tx.orm.public.OrderStatusHistory.create({
+            orderId: id,
+            previousStatus: "CANCEL_REQUESTED",
+            newStatus: previousStatus,
+            changedById: userId,
+            reason: data.reason,
+          });
+
+          return updatedOrder;
+        });
+
+        return res.json({
+          message: "Pengajuan pembatalan ditolak",
+          order: result,
+        });
+      }
+
+      const result = await db.transaction(async (tx) => {
+        const items = await tx.orm.public.OrderItem.where({
+          orderId: id,
+        }).all();
+
+        for (const item of items) {
+          const productPlan = tx.sql.public.products
+            .select("id", "name", "stock")
+            .where((f, fns) => fns.eq(f.id, item.productId))
+            .forUpdate()
+            .build();
+
+          const [product] = await tx.query(productPlan);
+
+          if (!product) {
+            throw new Error(
+              `Produk dengan ID ${item.productId} tidak ditemukan`,
+            );
+          }
+
+          const stockBefore = product.stock;
+          const stockAfter = product.stock + item.quantity;
+
+          await tx.orm.public.Product.where({
+            id: item.productId,
+          }).update({
+            stock: stockAfter,
+          });
+
+          await tx.orm.public.StockFlow.create({
+            productId: item.productId,
+            orderId: id,
+            type: "RETURN",
+            quantity: item.quantity,
+            stockBefore,
+            stockAfter,
+            changedById: userId,
+            note: "Stok dikembalikan karena transaksi dibatalkan",
+          });
+        }
+
+        const payments = await tx.orm.public.Payment.where({
+          orderId: id,
+        }).all();
+
+        for (const payment of payments) {
+          if (payment.status === "SUCCEEDED") {
+            await tx.orm.public.Payment.where({
+              id: payment.id,
+            }).update({
+              status: "REFUNDED",
+            });
+          }
+        }
+
+        const updatedOrder = await tx.orm.public.Order.where({
+          id,
+        }).update({
+          status: "CANCELLED",
+        });
+
+        await tx.orm.public.OrderStatusHistory.create({
+          orderId: id,
+          previousStatus: "CANCEL_REQUESTED",
+          newStatus: "CANCELLED",
+          changedById: userId,
+          reason: data.reason,
+        });
+
+        return updatedOrder;
+      });
+
+      return res.json({
+        message: "Pembatalan transaksi disetujui",
+        order: result,
+      });
+    } catch (error: unknown) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          message: "Data keputusan pembatalan tidak valid",
+          details: error.issues,
+        });
+      }
+
+      if (error instanceof Error) {
+        return res.status(400).json({
+          message: error.message,
+        });
+      }
+
+      return res.status(500).json({
+        message: "Terjadi kesalahan saat memproses pembatalan",
+      });
+    }
+  },
+);
+
 export default router;

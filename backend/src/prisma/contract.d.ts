@@ -23,9 +23,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'625713dea2e8ff57f18ddfe85a9f632e8de76462f10f35de38c200bb3771d098'>;
+  StorageHashBase<'eb25f59a294debbfaae214fe8a06b273bc6f37692795d3601ab768534f945ab5'>;
 export type ExecutionHash =
-  ExecutionHashBase<'bccac161e7bc722d4453be48ebb0780b9e7d7776823dcd8b52d417d328ffa01e'>;
+  ExecutionHashBase<'099c5fb23790f80c73464fe3b80f72c443d392a6f9ff8eda388147cb47a5537c'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -279,9 +279,35 @@ type FieldTypeOverrides = {
   readonly public: {
     readonly models: {
       readonly Order: {
-        readonly paymentStatus: {
-          readonly output: 'UNPAID' | 'PAID';
-          readonly input: 'UNPAID' | 'PAID';
+        readonly status: {
+          readonly output: 'PENDING' | 'PAID' | 'CANCEL_REQUESTED' | 'CANCELLED';
+          readonly input: 'PENDING' | 'PAID' | 'CANCEL_REQUESTED' | 'CANCELLED';
+        };
+      };
+      readonly OrderStatusHistory: {
+        readonly newStatus: {
+          readonly output: 'PENDING' | 'PAID' | 'CANCEL_REQUESTED' | 'CANCELLED';
+          readonly input: 'PENDING' | 'PAID' | 'CANCEL_REQUESTED' | 'CANCELLED';
+        };
+        readonly previousStatus: {
+          readonly output: 'PENDING' | 'PAID' | 'CANCEL_REQUESTED' | 'CANCELLED';
+          readonly input: 'PENDING' | 'PAID' | 'CANCEL_REQUESTED' | 'CANCELLED';
+        };
+      };
+      readonly Payment: {
+        readonly method: {
+          readonly output: 'QRIS' | 'TRANSFER_BANK' | 'CASH';
+          readonly input: 'QRIS' | 'TRANSFER_BANK' | 'CASH';
+        };
+        readonly status: {
+          readonly output: 'PENDING' | 'SUCCEEDED' | 'FAILED' | 'REFUNDED';
+          readonly input: 'PENDING' | 'SUCCEEDED' | 'FAILED' | 'REFUNDED';
+        };
+      };
+      readonly StockFlow: {
+        readonly type: {
+          readonly output: 'IN' | 'OUT' | 'ADJUSTMENT' | 'RETURN';
+          readonly input: 'IN' | 'OUT' | 'ADJUSTMENT' | 'RETURN';
         };
       };
       readonly User: {
@@ -309,9 +335,35 @@ export type FieldInputTypes = FieldTypesFromDomain<
 type ColumnTypeOverrides = {
   readonly public: {
     readonly orders: {
-      readonly paymentStatus: {
-        readonly output: 'UNPAID' | 'PAID';
-        readonly input: 'UNPAID' | 'PAID';
+      readonly status: {
+        readonly output: 'PENDING' | 'PAID' | 'CANCEL_REQUESTED' | 'CANCELLED';
+        readonly input: 'PENDING' | 'PAID' | 'CANCEL_REQUESTED' | 'CANCELLED';
+      };
+    };
+    readonly OrderStatusHistory: {
+      readonly newStatus: {
+        readonly output: 'PENDING' | 'PAID' | 'CANCEL_REQUESTED' | 'CANCELLED';
+        readonly input: 'PENDING' | 'PAID' | 'CANCEL_REQUESTED' | 'CANCELLED';
+      };
+      readonly previousStatus: {
+        readonly output: 'PENDING' | 'PAID' | 'CANCEL_REQUESTED' | 'CANCELLED';
+        readonly input: 'PENDING' | 'PAID' | 'CANCEL_REQUESTED' | 'CANCELLED';
+      };
+    };
+    readonly Payment: {
+      readonly method: {
+        readonly output: 'QRIS' | 'TRANSFER_BANK' | 'CASH';
+        readonly input: 'QRIS' | 'TRANSFER_BANK' | 'CASH';
+      };
+      readonly status: {
+        readonly output: 'PENDING' | 'SUCCEEDED' | 'FAILED' | 'REFUNDED';
+        readonly input: 'PENDING' | 'SUCCEEDED' | 'FAILED' | 'REFUNDED';
+      };
+    };
+    readonly StockFlow: {
+      readonly type: {
+        readonly output: 'IN' | 'OUT' | 'ADJUSTMENT' | 'RETURN';
+        readonly input: 'IN' | 'OUT' | 'ADJUSTMENT' | 'RETURN';
       };
     };
     readonly users: {
@@ -336,18 +388,18 @@ export type StorageColumnInputTypes = ColumnTypesFromStorage<
 
 export namespace Models {
   export type public_Order = {
-    amountPaid: FieldOutputTypes['public']['Order']['amountPaid'];
-    changeAmount: FieldOutputTypes['public']['Order']['changeAmount'];
     createdAt: FieldOutputTypes['public']['Order']['createdAt'];
     id: FieldOutputTypes['public']['Order']['id'];
-    paidAt: FieldOutputTypes['public']['Order']['paidAt'];
-    paymentStatus: FieldOutputTypes['public']['Order']['paymentStatus'];
+    status: FieldOutputTypes['public']['Order']['status'];
     total: FieldOutputTypes['public']['Order']['total'];
     updatedAt: FieldOutputTypes['public']['Order']['updatedAt'];
     userId: FieldOutputTypes['public']['Order']['userId'];
     items: public_OrderItem[];
+    payments: public_Payment[];
+    statusHistories: public_OrderStatusHistory[];
+    stockFlows: public_StockFlow[];
     user: public_User;
-    readonly [RelationKeys]?: 'items' | 'user';
+    readonly [RelationKeys]?: 'items' | 'payments' | 'statusHistories' | 'stockFlows' | 'user';
   };
   export type public_OrderItem = {
     createdAt: FieldOutputTypes['public']['OrderItem']['createdAt'];
@@ -363,6 +415,35 @@ export namespace Models {
     product: public_Product;
     readonly [RelationKeys]?: 'order' | 'product';
   };
+  export type public_OrderStatusHistory = {
+    changedById: FieldOutputTypes['public']['OrderStatusHistory']['changedById'];
+    createdAt: FieldOutputTypes['public']['OrderStatusHistory']['createdAt'];
+    id: FieldOutputTypes['public']['OrderStatusHistory']['id'];
+    newStatus: FieldOutputTypes['public']['OrderStatusHistory']['newStatus'];
+    orderId: FieldOutputTypes['public']['OrderStatusHistory']['orderId'];
+    paymentId: FieldOutputTypes['public']['OrderStatusHistory']['paymentId'];
+    previousStatus: FieldOutputTypes['public']['OrderStatusHistory']['previousStatus'];
+    reason: FieldOutputTypes['public']['OrderStatusHistory']['reason'];
+    changedBy: public_User;
+    order: public_Order;
+    payment: public_Payment | null;
+    readonly [RelationKeys]?: 'changedBy' | 'order' | 'payment';
+  };
+  export type public_Payment = {
+    amount: FieldOutputTypes['public']['Payment']['amount'];
+    changeAmount: FieldOutputTypes['public']['Payment']['changeAmount'];
+    createdAt: FieldOutputTypes['public']['Payment']['createdAt'];
+    id: FieldOutputTypes['public']['Payment']['id'];
+    method: FieldOutputTypes['public']['Payment']['method'];
+    orderId: FieldOutputTypes['public']['Payment']['orderId'];
+    paidAt: FieldOutputTypes['public']['Payment']['paidAt'];
+    referenceCode: FieldOutputTypes['public']['Payment']['referenceCode'];
+    status: FieldOutputTypes['public']['Payment']['status'];
+    updatedAt: FieldOutputTypes['public']['Payment']['updatedAt'];
+    order: public_Order;
+    statusHistories: public_OrderStatusHistory[];
+    readonly [RelationKeys]?: 'order' | 'statusHistories';
+  };
   export type public_Product = {
     createdAt: FieldOutputTypes['public']['Product']['createdAt'];
     id: FieldOutputTypes['public']['Product']['id'];
@@ -371,7 +452,24 @@ export namespace Models {
     price: FieldOutputTypes['public']['Product']['price'];
     stock: FieldOutputTypes['public']['Product']['stock'];
     updatedAt: FieldOutputTypes['public']['Product']['updatedAt'];
-    readonly [RelationKeys]?: never;
+    stockFlows: public_StockFlow[];
+    readonly [RelationKeys]?: 'stockFlows';
+  };
+  export type public_StockFlow = {
+    changedById: FieldOutputTypes['public']['StockFlow']['changedById'];
+    createdAt: FieldOutputTypes['public']['StockFlow']['createdAt'];
+    id: FieldOutputTypes['public']['StockFlow']['id'];
+    note: FieldOutputTypes['public']['StockFlow']['note'];
+    orderId: FieldOutputTypes['public']['StockFlow']['orderId'];
+    productId: FieldOutputTypes['public']['StockFlow']['productId'];
+    quantity: FieldOutputTypes['public']['StockFlow']['quantity'];
+    stockAfter: FieldOutputTypes['public']['StockFlow']['stockAfter'];
+    stockBefore: FieldOutputTypes['public']['StockFlow']['stockBefore'];
+    type: FieldOutputTypes['public']['StockFlow']['type'];
+    changedBy: public_User;
+    order: public_Order | null;
+    product: public_Product;
+    readonly [RelationKeys]?: 'changedBy' | 'order' | 'product';
   };
   export type public_User = {
     createdAt: FieldOutputTypes['public']['User']['createdAt'];
@@ -382,7 +480,9 @@ export namespace Models {
     password: FieldOutputTypes['public']['User']['password'];
     role: FieldOutputTypes['public']['User']['role'];
     updatedAt: FieldOutputTypes['public']['User']['updatedAt'];
-    readonly [RelationKeys]?: never;
+    statusHistories: public_OrderStatusHistory[];
+    stockFlows: public_StockFlow[];
+    readonly [RelationKeys]?: 'statusHistories' | 'stockFlows';
   };
 }
 
@@ -390,7 +490,10 @@ export declare const models: {
   public: {
     Order: Models.public_Order;
     OrderItem: Models.public_OrderItem;
+    OrderStatusHistory: Models.public_OrderStatusHistory;
+    Payment: Models.public_Payment;
     Product: Models.public_Product;
+    StockFlow: Models.public_StockFlow;
     User: Models.public_User;
   };
 };
@@ -517,18 +620,6 @@ type ContractBase = Omit<
             };
             readonly orders: {
               columns: {
-                readonly amountPaid: {
-                  readonly dataType: 'pg/int4';
-                  readonly codecId: 'pg/int4@1';
-                  readonly nullable: true;
-                  readonly many: false;
-                };
-                readonly changeAmount: {
-                  readonly dataType: 'pg/int4';
-                  readonly codecId: 'pg/int4@1';
-                  readonly nullable: true;
-                  readonly many: false;
-                };
                 readonly createdAt: {
                   readonly dataType: 'pg/timestamptz';
                   readonly codecId: 'pg/timestamptz-date@1';
@@ -542,20 +633,13 @@ type ContractBase = Omit<
                   readonly nullable: false;
                   readonly many: false;
                 };
-                readonly paidAt: {
-                  readonly dataType: 'pg/timestamptz';
-                  readonly codecId: 'pg/timestamptz-date@1';
-                  readonly nullable: true;
-                  readonly typeParams: { readonly precision: 3 };
-                  readonly many: false;
-                };
-                readonly paymentStatus: {
+                readonly status: {
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
                   readonly default: {
                     readonly kind: 'literal';
-                    readonly value: DefaultLiteralValue<'pg/text@1', 'UNPAID'>;
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'PENDING'>;
                   };
                   readonly many: false;
                 };
@@ -599,6 +683,218 @@ type ContractBase = Omit<
                   readonly target: {
                     readonly namespaceId: 'public' & NamespaceId;
                     readonly tableName: 'users';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
+            readonly OrderStatusHistory: {
+              columns: {
+                readonly changedById: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: false;
+                  readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly newStatus: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly orderId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly paymentId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly previousStatus: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly reason: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'OrderStatusHistory_changedById_idx_d6e6aadb';
+                  readonly prefix: 'OrderStatusHistory_changedById_idx';
+                  readonly columns: readonly ['changedById'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'OrderStatusHistory_orderId_idx_d284871b';
+                  readonly prefix: 'OrderStatusHistory_orderId_idx';
+                  readonly columns: readonly ['orderId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'OrderStatusHistory_paymentId_idx_b2fe9a10';
+                  readonly prefix: 'OrderStatusHistory_paymentId_idx';
+                  readonly columns: readonly ['paymentId'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'OrderStatusHistory';
+                    readonly columns: readonly ['orderId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'orders';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'OrderStatusHistory';
+                    readonly columns: readonly ['paymentId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Payment';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'OrderStatusHistory';
+                    readonly columns: readonly ['changedById'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'users';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
+            readonly Payment: {
+              columns: {
+                readonly amount: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly changeAmount: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: false;
+                  readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly method: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly orderId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly paidAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: true;
+                  readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+                readonly referenceCode: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly status: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'PENDING'>;
+                  };
+                  readonly many: false;
+                };
+                readonly updatedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: false;
+                  readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'Payment_orderId_idx_d284871b';
+                  readonly prefix: 'Payment_orderId_idx';
+                  readonly columns: readonly ['orderId'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Payment';
+                    readonly columns: readonly ['orderId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'orders';
                     readonly columns: readonly ['id'];
                   };
                 },
@@ -659,6 +955,131 @@ type ContractBase = Omit<
               uniques: readonly [];
               indexes: readonly [];
               foreignKeys: readonly [];
+            };
+            readonly StockFlow: {
+              columns: {
+                readonly changedById: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: false;
+                  readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly note: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly orderId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly productId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly quantity: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly stockAfter: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly stockBefore: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly type: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'StockFlow_changedById_idx_d6e6aadb';
+                  readonly prefix: 'StockFlow_changedById_idx';
+                  readonly columns: readonly ['changedById'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'StockFlow_orderId_idx_d284871b';
+                  readonly prefix: 'StockFlow_orderId_idx';
+                  readonly columns: readonly ['orderId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'StockFlow_productId_idx_5858600a';
+                  readonly prefix: 'StockFlow_productId_idx';
+                  readonly columns: readonly ['productId'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'StockFlow';
+                    readonly columns: readonly ['productId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'products';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'StockFlow';
+                    readonly columns: readonly ['orderId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'orders';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'StockFlow';
+                    readonly columns: readonly ['changedById'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'users';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
             };
             readonly users: {
               columns: {
@@ -728,13 +1149,25 @@ type ContractBase = Omit<
             };
           };
           readonly valueSet: {
-            readonly OrderPaymentStatus: {
+            readonly OrderStatus: {
               readonly kind: 'valueSet';
-              readonly values: readonly ['UNPAID', 'PAID'];
+              readonly values: readonly ['PENDING', 'PAID', 'CANCEL_REQUESTED', 'CANCELLED'];
+            };
+            readonly PaymentMethod: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['QRIS', 'TRANSFER_BANK', 'CASH'];
+            };
+            readonly PaymentStatus: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['PENDING', 'SUCCEEDED', 'FAILED', 'REFUNDED'];
             };
             readonly Role: {
               readonly kind: 'valueSet';
               readonly values: readonly ['ADMIN', 'STAFF'];
+            };
+            readonly StockFlowType: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['IN', 'OUT', 'ADJUSTMENT', 'RETURN'];
             };
           };
         };
@@ -747,6 +1180,12 @@ type ContractBase = Omit<
   readonly target: 'postgres';
   readonly targetFamily: 'sql';
   readonly roots: {
+    readonly OrderStatusHistory: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'OrderStatusHistory';
+    };
+    readonly Payment: { readonly namespace: 'public' & NamespaceId; readonly model: 'Payment' };
+    readonly StockFlow: { readonly namespace: 'public' & NamespaceId; readonly model: 'StockFlow' };
     readonly order_items: {
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'OrderItem';
@@ -761,14 +1200,6 @@ type ContractBase = Omit<
         readonly models: {
           readonly Order: {
             readonly fields: {
-              readonly amountPaid: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
-              };
-              readonly changeAmount: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
-              };
               readonly createdAt: {
                 readonly nullable: false;
                 readonly type: {
@@ -781,15 +1212,7 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
-              readonly paidAt: {
-                readonly nullable: true;
-                readonly type: {
-                  readonly kind: 'scalar';
-                  readonly codecId: 'pg/timestamptz-date@1';
-                  readonly typeParams: { readonly precision: 3 };
-                };
-              };
-              readonly paymentStatus: {
+              readonly status: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
@@ -822,6 +1245,39 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['orderId'];
                 };
               };
+              readonly payments: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Payment';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['orderId'];
+                };
+              };
+              readonly statusHistories: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'OrderStatusHistory';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['orderId'];
+                };
+              };
+              readonly stockFlows: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'StockFlow';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['orderId'];
+                };
+              };
               readonly user: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
                 readonly cardinality: 'N:1';
@@ -836,12 +1292,9 @@ type ContractBase = Omit<
               readonly table: 'orders';
               readonly namespaceId: 'public';
               readonly fields: {
-                readonly amountPaid: { readonly column: 'amountPaid' };
-                readonly changeAmount: { readonly column: 'changeAmount' };
                 readonly createdAt: { readonly column: 'createdAt' };
                 readonly id: { readonly column: 'id' };
-                readonly paidAt: { readonly column: 'paidAt' };
-                readonly paymentStatus: { readonly column: 'paymentStatus' };
+                readonly status: { readonly column: 'status' };
                 readonly total: { readonly column: 'total' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
                 readonly userId: { readonly column: 'userId' };
@@ -937,6 +1390,192 @@ type ContractBase = Omit<
               };
             };
           };
+          readonly OrderStatusHistory: {
+            readonly fields: {
+              readonly changedById: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly newStatus: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly orderId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly paymentId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly previousStatus: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly reason: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: {
+              readonly changedBy: {
+                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['changedById'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+              readonly order: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Order';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['orderId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+              readonly payment: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Payment';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: true;
+                readonly on: {
+                  readonly localFields: readonly ['paymentId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'OrderStatusHistory';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly changedById: { readonly column: 'changedById' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly id: { readonly column: 'id' };
+                readonly newStatus: { readonly column: 'newStatus' };
+                readonly orderId: { readonly column: 'orderId' };
+                readonly paymentId: { readonly column: 'paymentId' };
+                readonly previousStatus: { readonly column: 'previousStatus' };
+                readonly reason: { readonly column: 'reason' };
+              };
+            };
+          };
+          readonly Payment: {
+            readonly fields: {
+              readonly amount: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly changeAmount: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly method: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly orderId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly paidAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+              readonly referenceCode: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly status: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+            };
+            readonly relations: {
+              readonly order: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Order';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['orderId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+              readonly statusHistories: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'OrderStatusHistory';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['paymentId'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'Payment';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly amount: { readonly column: 'amount' };
+                readonly changeAmount: { readonly column: 'changeAmount' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly id: { readonly column: 'id' };
+                readonly method: { readonly column: 'method' };
+                readonly orderId: { readonly column: 'orderId' };
+                readonly paidAt: { readonly column: 'paidAt' };
+                readonly referenceCode: { readonly column: 'referenceCode' };
+                readonly status: { readonly column: 'status' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+              };
+            };
+          };
           readonly Product: {
             readonly fields: {
               readonly createdAt: {
@@ -976,7 +1615,19 @@ type ContractBase = Omit<
                 };
               };
             };
-            readonly relations: Record<string, never>;
+            readonly relations: {
+              readonly stockFlows: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'StockFlow';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['productId'];
+                };
+              };
+            };
             readonly storage: {
               readonly table: 'products';
               readonly namespaceId: 'public';
@@ -988,6 +1639,105 @@ type ContractBase = Omit<
                 readonly price: { readonly column: 'price' };
                 readonly stock: { readonly column: 'stock' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
+              };
+            };
+          };
+          readonly StockFlow: {
+            readonly fields: {
+              readonly changedById: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly note: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly orderId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly productId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly quantity: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly stockAfter: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly stockBefore: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly type: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: {
+              readonly changedBy: {
+                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['changedById'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+              readonly order: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Order';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: true;
+                readonly on: {
+                  readonly localFields: readonly ['orderId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+              readonly product: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Product';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['productId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'StockFlow';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly changedById: { readonly column: 'changedById' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly id: { readonly column: 'id' };
+                readonly note: { readonly column: 'note' };
+                readonly orderId: { readonly column: 'orderId' };
+                readonly productId: { readonly column: 'productId' };
+                readonly quantity: { readonly column: 'quantity' };
+                readonly stockAfter: { readonly column: 'stockAfter' };
+                readonly stockBefore: { readonly column: 'stockBefore' };
+                readonly type: { readonly column: 'type' };
               };
             };
           };
@@ -1034,7 +1784,30 @@ type ContractBase = Omit<
                 };
               };
             };
-            readonly relations: Record<string, never>;
+            readonly relations: {
+              readonly statusHistories: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'OrderStatusHistory';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['changedById'];
+                };
+              };
+              readonly stockFlows: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'StockFlow';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['changedById'];
+                };
+              };
+            };
             readonly storage: {
               readonly table: 'users';
               readonly namespaceId: 'public';
@@ -1052,11 +1825,30 @@ type ContractBase = Omit<
           };
         };
         readonly enum: {
-          readonly OrderPaymentStatus: {
+          readonly OrderStatus: {
             readonly codecId: 'pg/text@1';
             readonly members: readonly [
-              { readonly name: 'UNPAID'; readonly value: 'UNPAID' },
+              { readonly name: 'PENDING'; readonly value: 'PENDING' },
               { readonly name: 'PAID'; readonly value: 'PAID' },
+              { readonly name: 'CANCEL_REQUESTED'; readonly value: 'CANCEL_REQUESTED' },
+              { readonly name: 'CANCELLED'; readonly value: 'CANCELLED' },
+            ];
+          };
+          readonly PaymentMethod: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'QRIS'; readonly value: 'QRIS' },
+              { readonly name: 'TRANSFER_BANK'; readonly value: 'TRANSFER_BANK' },
+              { readonly name: 'CASH'; readonly value: 'CASH' },
+            ];
+          };
+          readonly PaymentStatus: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'PENDING'; readonly value: 'PENDING' },
+              { readonly name: 'SUCCEEDED'; readonly value: 'SUCCEEDED' },
+              { readonly name: 'FAILED'; readonly value: 'FAILED' },
+              { readonly name: 'REFUNDED'; readonly value: 'REFUNDED' },
             ];
           };
           readonly Role: {
@@ -1066,15 +1858,43 @@ type ContractBase = Omit<
               { readonly name: 'STAFF'; readonly value: 'STAFF' },
             ];
           };
+          readonly StockFlowType: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'IN'; readonly value: 'IN' },
+              { readonly name: 'OUT'; readonly value: 'OUT' },
+              { readonly name: 'ADJUSTMENT'; readonly value: 'ADJUSTMENT' },
+              { readonly name: 'RETURN'; readonly value: 'RETURN' },
+            ];
+          };
         };
         readonly enumMemberTypes?: {
-          readonly OrderPaymentStatus: readonly [
-            { readonly name: 'UNPAID'; readonly value: 'UNPAID' },
+          readonly OrderStatus: readonly [
+            { readonly name: 'PENDING'; readonly value: 'PENDING' },
             { readonly name: 'PAID'; readonly value: 'PAID' },
+            { readonly name: 'CANCEL_REQUESTED'; readonly value: 'CANCEL_REQUESTED' },
+            { readonly name: 'CANCELLED'; readonly value: 'CANCELLED' },
+          ];
+          readonly PaymentMethod: readonly [
+            { readonly name: 'QRIS'; readonly value: 'QRIS' },
+            { readonly name: 'TRANSFER_BANK'; readonly value: 'TRANSFER_BANK' },
+            { readonly name: 'CASH'; readonly value: 'CASH' },
+          ];
+          readonly PaymentStatus: readonly [
+            { readonly name: 'PENDING'; readonly value: 'PENDING' },
+            { readonly name: 'SUCCEEDED'; readonly value: 'SUCCEEDED' },
+            { readonly name: 'FAILED'; readonly value: 'FAILED' },
+            { readonly name: 'REFUNDED'; readonly value: 'REFUNDED' },
           ];
           readonly Role: readonly [
             { readonly name: 'ADMIN'; readonly value: 'ADMIN' },
             { readonly name: 'STAFF'; readonly value: 'STAFF' },
+          ];
+          readonly StockFlowType: readonly [
+            { readonly name: 'IN'; readonly value: 'IN' },
+            { readonly name: 'OUT'; readonly value: 'OUT' },
+            { readonly name: 'ADJUSTMENT'; readonly value: 'ADJUSTMENT' },
+            { readonly name: 'RETURN'; readonly value: 'RETURN' },
           ];
         };
       };
@@ -1113,6 +1933,83 @@ type ContractBase = Omit<
     readonly executionHash: ExecutionHash;
     readonly mutations: {
       readonly defaults: readonly [
+        {
+          readonly onCreate: {
+            readonly id: 'timestampNow';
+            readonly kind: 'generator';
+            readonly params: { readonly precision: 3 };
+          };
+          readonly ref: {
+            readonly entry: 'OrderStatusHistory';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'OrderStatusHistory';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: {
+            readonly id: 'timestampNow';
+            readonly kind: 'generator';
+            readonly params: { readonly precision: 3 };
+          };
+          readonly ref: {
+            readonly entry: 'Payment';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'Payment';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: {
+            readonly id: 'timestampNow';
+            readonly kind: 'generator';
+            readonly params: { readonly precision: 3 };
+          };
+          readonly onUpdate: {
+            readonly id: 'timestampNow';
+            readonly kind: 'generator';
+            readonly params: { readonly precision: 3 };
+          };
+          readonly ref: {
+            readonly entry: 'Payment';
+            readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: {
+            readonly id: 'timestampNow';
+            readonly kind: 'generator';
+            readonly params: { readonly precision: 3 };
+          };
+          readonly ref: {
+            readonly entry: 'StockFlow';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'StockFlow';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
         {
           readonly onCreate: {
             readonly id: 'timestampNow';

@@ -45,6 +45,14 @@ const updateProductSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
+// Aturan untuk restock atau koreksi stok.
+const stockFlowSchema = z.object({
+  type: z.enum(["IN", "ADJUSTMENT"]),
+  quantity: z.number().int().positive().optional(),
+  stock: z.number().int().min(0).optional(),
+  note: z.string().optional(),
+});
+
 // GET /api/products
 // Mengambil semua produk.
 // GET /api/products
@@ -276,5 +284,99 @@ router.delete(
   },
 );
 
+// POST /api/products/:id/stock
+// Hanya ADMIN yang dapat restock atau menyesuaikan stok.
+router.post(
+  "/:id/stock",
+  authMiddleware,
+  roleMiddleware(["ADMIN"]),
+  async (req, res) => {
+    try {
+      const id = String(req.params.id);
+      const data = stockFlowSchema.parse(req.body);
+
+      const user = req as { user?: { userId?: string } };
+
+      if (!user.user?.userId) {
+        return res.status(401).json({
+          message: "User tidak ditemukan pada token",
+        });
+      }
+
+      const userId = String(user.user.userId);
+
+      const flow = await db.transaction(async (tx) => {
+        const productPlan = tx.sql.public.products
+          .select("id", "name", "stock")
+          .where((f, fns) => fns.eq(f.id, id))
+          .forUpdate()
+          .build();
+
+        const [product] = await tx.query(productPlan);
+
+        if (!product) {
+          throw new Error("Produk tidak ditemukan");
+        }
+
+        let quantity = 0;
+        let stockAfter = product.stock;
+
+        if (data.type === "IN") {
+          if (!data.quantity) {
+            throw new Error("Jumlah stok wajib diisi untuk restock");
+          }
+
+          quantity = data.quantity;
+          stockAfter = product.stock + quantity;
+        } else {
+          if (data.stock === undefined) {
+            throw new Error("Stok baru wajib diisi untuk penyesuaian stok");
+          }
+
+          quantity = Math.abs(data.stock - product.stock);
+          stockAfter = data.stock;
+        }
+
+        await tx.orm.public.Product.where({
+          id,
+        }).update({
+          stock: stockAfter,
+        });
+
+        return await tx.orm.public.StockFlow.create({
+          productId: id,
+          type: data.type,
+          quantity,
+          stockBefore: product.stock,
+          stockAfter,
+          changedById: userId,
+          note: data.note ?? null,
+        });
+      });
+
+      return res.status(201).json({
+        message: "Perubahan stok berhasil dicatat",
+        stockFlow: flow,
+      });
+    } catch (error: unknown) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          message: "Data stok tidak valid",
+          details: error.issues,
+        });
+      }
+
+      if (error instanceof Error) {
+        return res.status(400).json({
+          message: error.message,
+        });
+      }
+
+      return res.status(500).json({
+        message: "Terjadi kesalahan saat mencatat perubahan stok",
+      });
+    }
+  },
+);
 // Mengekspor router produk agar bisa dipakai di src/index.ts.
 export default router;

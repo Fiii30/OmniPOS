@@ -1,11 +1,15 @@
 import api from "./axios";
-import type { PayOrderInput, PayOrderResponse } from "@/types/order";
 
 import type {
   CreateOrderInput,
   CreateOrderResponse,
   Order,
   OrderDetailResponse,
+  CancelOrderInput,
+  CancelOrderResponse,
+  CancelDecisionInput,
+  PayOrderInput,
+  PayOrderResponse
 } from "@/types/order";
 
 export async function createOrder(data: CreateOrderInput) {
@@ -34,6 +38,24 @@ export async function getOrderDetail(id: string) {
 export async function payOrder(id: string, data: PayOrderInput) {
   const response = await api.post<PayOrderResponse>(
     `/orders/${encodeURIComponent(id)}/pay`,
+    data,
+  );
+
+  return response.data;
+}
+
+export async function requestOrderCancel(id: string, data: CancelOrderInput) {
+  const response = await api.post<CancelOrderResponse>(
+    `/orders/${encodeURIComponent(id)}/cancel-request`,
+    data,
+  );
+
+  return response.data;
+}
+
+export async function decideOrderCancel(id: string, data: CancelDecisionInput) {
+  const response = await api.post<CancelOrderResponse>(
+    `/orders/${encodeURIComponent(id)}/cancel/decision`,
     data,
   );
 
