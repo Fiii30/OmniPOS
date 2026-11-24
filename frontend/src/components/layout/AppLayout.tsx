@@ -42,7 +42,7 @@ const navigation = [
     label: "Laporan",
     to: "/reports",
     icon: BarChart3,
-    adminOnly: true,
+    adminOnly: false,
   },
 ];
 
@@ -70,6 +70,7 @@ export default function AppLayout() {
 
           <div>
             <p className="text-xl font-bold tracking-tight">OmniPOS</p>
+
             <p className="text-xs text-muted-foreground">
               Kasir & Manajemen Toko
             </p>
@@ -129,6 +130,7 @@ export default function AppLayout() {
         <header className="sticky top-0 z-20 flex h-20 items-center justify-between gap-4 border-b bg-white/95 px-5 backdrop-blur sm:px-8">
           <div>
             <p className="text-sm font-semibold">Portal Operasional</p>
+
             <p className="mt-1 text-xs text-muted-foreground">
               Selamat datang kembali, {user?.name}
             </p>
@@ -137,6 +139,7 @@ export default function AppLayout() {
           <div className="flex items-center gap-3">
             <div className="hidden text-right sm:block">
               <p className="text-sm font-semibold">{user?.name}</p>
+
               <p className="text-xs text-muted-foreground">{user?.role}</p>
             </div>
 

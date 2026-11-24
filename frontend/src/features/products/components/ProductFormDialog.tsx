@@ -31,7 +31,7 @@ export default function ProductFormDialog({
   onClose,
   onSaved,
 }: Props) {
-  const isEditing = product !== null;
+  const isEditing = Boolean(product);
 
   const [name, setName] = useState(product?.name ?? "");
 
@@ -49,6 +49,8 @@ export default function ProductFormDialog({
     if (isSaving) return;
 
     setError("");
+
+    const isEditing = Boolean(product);
 
     const cleanName = name.trim();
     const numericPrice = Number(price);
@@ -69,29 +71,35 @@ export default function ProductFormDialog({
       return;
     }
 
-    if (
-      stock.trim() === "" ||
-      !Number.isSafeInteger(numericStock) ||
-      numericStock < 0 ||
-      numericStock > 2147483647
-    ) {
-      setError("Stok harus angka bulat dari 0 sampai 2.147.483.647.");
-      return;
+    // Validasi stok hanya untuk produk baru.
+    if (!isEditing) {
+      if (
+        stock.trim() === "" ||
+        !Number.isSafeInteger(numericStock) ||
+        numericStock < 0 ||
+        numericStock > 2147483647
+      ) {
+        setError("Stok harus angka bulat dari 0 sampai 2.147.483.647.");
+        return;
+      }
     }
 
     setIsSaving(true);
 
     try {
-      const data = {
-        name: cleanName,
-        price: numericPrice,
-        stock: numericStock,
-      };
-
       if (product) {
-        await updateProduct(product.id, data);
+        // Saat edit, stok tidak boleh diubah langsung.
+        await updateProduct(product.id, {
+          name: cleanName,
+          price: numericPrice,
+          stock:0
+        });
       } else {
-        await createProduct(data);
+        await createProduct({
+          name: cleanName,
+          price: numericPrice,
+          stock: numericStock,
+        });
       }
     } catch (error: unknown) {
       if (isAxiosError<{ message?: string }>(error)) {
@@ -110,7 +118,6 @@ export default function ProductFormDialog({
     setIsSaving(false);
     onSaved();
   };
-
   return (
     <Dialog
       open
@@ -126,7 +133,7 @@ export default function ProductFormDialog({
 
           <DialogDescription>
             {isEditing
-              ? "Perbarui nama, harga, atau stok produk."
+              ? "Perbarui nama, atau harga"
               : "Masukkan informasi produk baru untuk inventori toko."}
           </DialogDescription>
         </DialogHeader>
@@ -189,16 +196,18 @@ export default function ProductFormDialog({
             <Input
               id="product-stock"
               type="number"
-              inputMode="numeric"
               min={0}
-              max={2147483647}
               step={1}
               value={stock}
               onChange={(event) => setStock(event.target.value)}
-              className="omni-input"
-              disabled={isSaving}
-              required
+              className="rounded-xl bg-slate-50 disabled:opacity-60"
+              disabled={isEditing}
             />
+            {isEditing && (
+              <p className="text-xs text-muted-foreground">
+                Stok hanya dapat diubah melalui Restock atau Koreksi Stok.
+              </p>
+            )}
           </div>
 
           <div className="flex justify-end gap-3 border-t pt-5">

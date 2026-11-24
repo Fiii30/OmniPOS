@@ -1,47 +1,21 @@
-// File ini berisi API untuk mengelola produk OmniPOS.
 
-// Import Router dari Express untuk membuat route produk.
 import { Router } from "express";
-
-// Import zod untuk memvalidasi data dari frontend/Postman.
 import { z } from "zod";
-
-// Import middleware agar user wajib login menggunakan JWT.
 import { authMiddleware } from "../middleware/auth";
-
-// Import middleware untuk membatasi akses berdasarkan role.
 import { roleMiddleware } from "../middleware/role";
-
-// Import koneksi database Prisma 8.
 import { db } from "../prisma/db";
 
-// Membuat router khusus produk.
 const router = Router();
 
-// Aturan data saat ADMIN menambah produk baru.
 const createProductSchema = z.object({
-  // Nama produk wajib diisi dan minimal 2 karakter.
   name: z.string().min(2),
-
-  // Harga produk wajib angka bulat positif.
   price: z.number().int().positive(),
-
-  // Stok produk wajib angka bulat, minimal 0.
   stock: z.number().int().min(0),
 });
 
-// Aturan data saat ADMIN mengubah produk.
 const updateProductSchema = z.object({
-  // Nama produk boleh dikirim atau tidak.
   name: z.string().min(2).optional(),
-
-  // Harga produk boleh dikirim atau tidak.
   price: z.number().int().positive().optional(),
-
-  // Stok produk boleh dikirim atau tidak.
-  stock: z.number().int().min(0).optional(),
-
-  // Status aktif produk boleh dikirim atau tidak.
   isActive: z.boolean().optional(),
 });
 
@@ -224,7 +198,6 @@ router.put(
       const product = await db.orm.public.Product.where({ id }).update({
         name: data.name,
         price: data.price,
-        stock: data.stock,
         isActive: data.isActive,
       });
 

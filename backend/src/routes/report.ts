@@ -1,144 +1,351 @@
-// File ini berisi API laporan penjualan OmniPOS.
+// File ini berisi API laporan OmniPOS.
 
-// Import Router dari Express untuk membuat route laporan.
 import { Router } from "express";
+import { z } from "zod";
 
-// Import middleware agar user wajib login menggunakan JWT.
 import { authMiddleware } from "../middleware/auth";
-
-// Import middleware untuk membatasi akses berdasarkan role.
 import { roleMiddleware } from "../middleware/role";
-
-// Import koneksi database Prisma 8.
 import { db } from "../prisma/db";
 
-// Membuat router khusus laporan.
 const router = Router();
 
-// GET /api/reports/sales
-// Mengambil laporan penjualan untuk satu tanggal.
+const periodSchema = z.enum(["today", "week", "month", "custom"]);
+
+const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+
+type PeriodRange = {
+  start: Date;
+  end: Date;
+};
+
+// Menentukan rentang waktu laporan.
+function getPeriodRange(
+  period: "today" | "week" | "month" | "custom",
+  from?: string,
+  to?: string,
+): PeriodRange {
+  const now = new Date();
+  const start = new Date(now);
+  const end = new Date(now);
+
+  start.setHours(0, 0, 0, 0);
+  end.setHours(23, 59, 59, 999);
+
+  if (period === "week") {
+    start.setDate(start.getDate() - 6);
+  }
+
+  if (period === "month") {
+    start.setDate(start.getDate() - 29);
+  }
+
+  if (period === "custom") {
+    if (!from || !to) {
+      throw new Error(
+        "Tanggal awal dan akhir wajib diisi untuk periode custom",
+      );
+    }
+
+    start.setTime(new Date(`${from}T00:00:00`).getTime());
+    end.setTime(new Date(`${to}T23:59:59.999`).getTime());
+  }
+
+  return { start, end };
+}
+
+// Memfilter order yang sudah dibayar dan berada dalam periode.
+function getPaidOrders(
+  orders: {
+    id: string;
+    total: number;
+    status: string;
+    createdAt: Date;
+  }[],
+  range: PeriodRange,
+) {
+  return orders.filter((order) => {
+    const createdAt = new Date(order.createdAt);
+
+    return (
+      order.status === "PAID" &&
+      createdAt >= range.start &&
+      createdAt <= range.end
+    );
+  });
+}
+
+// GET /api/reports/summary
+// ADMIN dan STAFF dapat melihat ringkasan penjualan.
 router.get(
-  "/sales",
-
-  // User harus login terlebih dahulu.
+  "/summary",
   authMiddleware,
-
-  // Hanya ADMIN yang boleh melihat laporan penjualan.
-  roleMiddleware(["ADMIN"]),
-
+  roleMiddleware(["ADMIN", "STAFF"]),
   async (req, res) => {
     try {
-      // Mengambil tanggal dari query URL.
-      const requestedDate = req.query.date;
+      const period = periodSchema.parse(req.query.period ?? "today");
 
-      // Jika tanggal tidak dikirim, gunakan tanggal hari ini.
-      const date = requestedDate
-        ? String(requestedDate)
-        : new Date().toISOString().split("T")[0];
+      const from = req.query.from ? String(req.query.from) : undefined;
+      const to = req.query.to ? String(req.query.to) : undefined;
 
-      // Memastikan format tanggal benar, contoh: 2026-11-19
-      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      if (from) dateSchema.parse(from);
+      if (to) dateSchema.parse(to);
 
-      // Jika format tanggal salah.
-      if (!dateRegex.test(date)) {
-        return res.status(400).json({
-          message: "Format tanggal harus YYYY-MM-DD",
-        });
-      }
+      const range = getPeriodRange(period, from, to);
 
-      // Mengambil semua order.
       const orders = await db.orm.public.Order.all();
+      const paidOrders = getPaidOrders(orders, range);
 
-      // Menyaring order yang dibuat pada tanggal yang diminta.
-      const dailyOrders = orders.filter((order) => {
-        // Mengubah tanggal order menjadi format YYYY-MM-DD.
-        const orderDate = new Date(order.createdAt).toISOString().split("T")[0];
+      const paidOrderIds = paidOrders.map((order) => order.id);
 
-        // Mengembalikan true jika tanggal order sama dengan tanggal laporan.
-        return orderDate === date;
-      });
+      const orderItems = await db.orm.public.OrderItem.all();
 
-      // Menghitung total pendapatan dari order hari itu.
-      const totalRevenue = dailyOrders.reduce(
+      const paidItems = orderItems.filter((item) =>
+        paidOrderIds.includes(item.orderId),
+      );
+
+      const totalRevenue = paidOrders.reduce(
         (total, order) => total + order.total,
         0,
       );
 
-      // Menghitung jumlah transaksi hari itu.
-      const totalOrders = dailyOrders.length;
-
-      // Mengambil semua order item.
-      const orderItems = await db.orm.public.OrderItem.all();
-
-      // Menyaring order item yang termasuk dalam order hari itu.
-      const dailyOrderIds = dailyOrders.map((order) => order.id);
-
-      const dailyItems = orderItems.filter((item) =>
-        dailyOrderIds.includes(item.orderId),
-      );
-
-      // Menghitung total produk yang terjual.
-      const totalItemsSold = dailyItems.reduce(
+      const totalItemsSold = paidItems.reduce(
         (total, item) => total + item.quantity,
         0,
       );
 
-      // Menyimpan jumlah penjualan setiap produk.
-      const productSales: Record<
-        string,
-        {
-          productName: string;
-          quantity: number;
-          revenue: number;
-        }
-      > = {};
+      const averageOrderValue =
+        paidOrders.length > 0
+          ? Math.round(totalRevenue / paidOrders.length)
+          : 0;
 
-      // Menghitung penjualan setiap produk.
-      for (const item of dailyItems) {
-        // Jika produk belum ada di laporan, buat datanya.
-        if (!productSales[item.productId]) {
-          productSales[item.productId] = {
-            productName: item.productName,
-            quantity: 0,
-            revenue: 0,
-          };
-        }
-
-        // Menambahkan jumlah produk yang terjual.
-        productSales[item.productId].quantity += item.quantity;
-
-        // Menambahkan pendapatan dari produk tersebut.
-        productSales[item.productId].revenue += item.subtotal;
+      return res.json({
+        message: "Ringkasan penjualan berhasil diambil",
+        period,
+        from: range.start,
+        to: range.end,
+        totalRevenue,
+        totalOrders: paidOrders.length,
+        totalItemsSold,
+        averageOrderValue,
+      });
+    } catch (error: unknown) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          message: "Periode laporan tidak valid",
+          details: error.issues,
+        });
       }
 
-      // Mengubah objek productSales menjadi array.
-      const bestSellingProducts = Object.entries(productSales)
-        .map(([productId, data]) => ({
-          productId,
-          productName: data.productName,
-          quantity: data.quantity,
-          revenue: data.revenue,
-        }))
-        // Mengurutkan produk dari yang paling banyak terjual.
-        .sort((a, b) => b.quantity - a.quantity);
+      if (error instanceof Error) {
+        return res.status(400).json({
+          message: error.message,
+        });
+      }
 
-      // Mengirim laporan penjualan.
-      return res.json({
-        message: "Laporan penjualan berhasil diambil",
-        date,
-        totalOrders,
-        totalRevenue,
-        totalItemsSold,
-        bestSellingProducts,
-      });
-    } catch (error: any) {
-      // Mengirim error jika query database gagal.
       return res.status(500).json({
-        message: error.message,
+        message: "Terjadi kesalahan saat mengambil ringkasan penjualan",
       });
     }
   },
 );
 
-// Mengekspor router laporan agar bisa dipakai di src/index.ts.
+// GET /api/reports/top-products
+// ADMIN dan STAFF dapat melihat produk terlaris.
+router.get(
+  "/top-products",
+  authMiddleware,
+  roleMiddleware(["ADMIN", "STAFF"]),
+  async (req, res) => {
+    try {
+      const period = periodSchema.parse(req.query.period ?? "today");
+
+      const from = req.query.from ? String(req.query.from) : undefined;
+      const to = req.query.to ? String(req.query.to) : undefined;
+
+      if (from) dateSchema.parse(from);
+      if (to) dateSchema.parse(to);
+
+      const range = getPeriodRange(period, from, to);
+
+      const orders = await db.orm.public.Order.all();
+      const paidOrders = getPaidOrders(orders, range);
+
+      const paidOrderIds = paidOrders.map((order) => order.id);
+
+      const orderItems = await db.orm.public.OrderItem.all();
+
+      const paidItems = orderItems.filter((item) =>
+        paidOrderIds.includes(item.orderId),
+      );
+
+      const productSales = new Map<
+        string,
+        {
+          productId: string;
+          productName: string;
+          quantity: number;
+          revenue: number;
+        }
+      >();
+
+      for (const item of paidItems) {
+        const current = productSales.get(item.productId) ?? {
+          productId: item.productId,
+          productName: item.productName,
+          quantity: 0,
+          revenue: 0,
+        };
+
+        current.quantity += item.quantity;
+        current.revenue += item.subtotal;
+
+        productSales.set(item.productId, current);
+      }
+
+      const topProducts = Array.from(productSales.values()).sort(
+        (a, b) => b.quantity - a.quantity,
+      );
+
+      return res.json({
+        message: "Produk terlaris berhasil diambil",
+        period,
+        from: range.start,
+        to: range.end,
+        topProducts,
+      });
+    } catch (error: unknown) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          message: "Periode laporan tidak valid",
+          details: error.issues,
+        });
+      }
+
+      if (error instanceof Error) {
+        return res.status(400).json({
+          message: error.message,
+        });
+      }
+
+      return res.status(500).json({
+        message: "Terjadi kesalahan saat mengambil produk terlaris",
+      });
+    }
+  },
+);
+
+// GET /api/reports/low-stock
+// ADMIN dan STAFF dapat melihat produk dengan stok rendah.
+router.get(
+  "/low-stock",
+  authMiddleware,
+  roleMiddleware(["ADMIN", "STAFF"]),
+  async (_req, res) => {
+    try {
+      const products = await db.orm.public.Product.all();
+
+      const lowStockProducts = products
+        .filter((product) => product.isActive && product.stock <= 5)
+        .sort((a, b) => a.stock - b.stock);
+
+      return res.json({
+        message: "Produk dengan stok rendah berhasil diambil",
+        products: lowStockProducts,
+      });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        return res.status(500).json({
+          message: error.message,
+        });
+      }
+
+      return res.status(500).json({
+        message: "Terjadi kesalahan saat mengambil stok rendah",
+      });
+    }
+  },
+);
+
+// GET /api/reports/cancellations
+// Hanya ADMIN yang dapat melihat laporan pembatalan.
+router.get(
+  "/cancellations",
+  authMiddleware,
+  roleMiddleware(["ADMIN"]),
+  async (req, res) => {
+    try {
+      const period = periodSchema.parse(req.query.period ?? "today");
+
+      const from = req.query.from ? String(req.query.from) : undefined;
+      const to = req.query.to ? String(req.query.to) : undefined;
+
+      if (from) dateSchema.parse(from);
+      if (to) dateSchema.parse(to);
+
+      const range = getPeriodRange(period, from, to);
+
+      const orders = await db.orm.public.Order.all();
+
+      const cancelledOrders = orders.filter((order) => {
+        const createdAt = new Date(order.createdAt);
+
+        return (
+          order.status === "CANCELLED" &&
+          createdAt >= range.start &&
+          createdAt <= range.end
+        );
+      });
+
+      const histories = await db.orm.public.OrderStatusHistory.all();
+
+      const cancellations = cancelledOrders.map((order) => {
+        const orderHistories = histories
+          .filter((history) => history.orderId === order.id)
+          .sort(
+            (a, b) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+          );
+
+        const cancellationHistory = orderHistories.find(
+          (history) => history.newStatus === "CANCELLED",
+        );
+
+        return {
+          orderId: order.id,
+          total: order.total,
+          createdAt: order.createdAt,
+          reason: cancellationHistory?.reason ?? null,
+          decidedBy: cancellationHistory?.changedById ?? null,
+          decidedAt: cancellationHistory?.createdAt ?? null,
+        };
+      });
+
+      return res.json({
+        message: "Laporan pembatalan berhasil diambil",
+        period,
+        from: range.start,
+        to: range.end,
+        cancellations,
+      });
+    } catch (error: unknown) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          message: "Periode laporan tidak valid",
+          details: error.issues,
+        });
+      }
+
+      if (error instanceof Error) {
+        return res.status(400).json({
+          message: error.message,
+        });
+      }
+
+      return res.status(500).json({
+        message: "Terjadi kesalahan saat mengambil laporan pembatalan",
+      });
+    }
+  },
+);
+
 export default router;

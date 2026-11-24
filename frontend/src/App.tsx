@@ -4,21 +4,11 @@ import LoginPage from "@/features/auth/pages/LoginPage";
 import ProductsPage from "@/features/products/pages/ProductsPage";
 import OrdersPage from "@/features/orders/pages/OrderPage";
 import OrderHistoryPage from "@/features/orders/pages/OrderHistoryPage";
+import UsersPage from "@/features/users/pages/UsersPage";
+import ReportsPage from "@/features/reports/pages/ReportsPage";
 
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import AppLayout from "@/components/layout/AppLayout";
-
-function ComingSoon({ title }: { title: string }) {
-  return (
-    <section className="omni-surface p-6">
-      <h1 className="text-2xl font-bold">{title}</h1>
-
-      <p className="mt-2 text-sm text-muted-foreground">
-        Halaman ini akan kita sambungkan pada tahap berikutnya.
-      </p>
-    </section>
-  );
-}
 
 export default function App() {
   return (
@@ -35,15 +25,9 @@ export default function App() {
             <Route path="/orders" element={<OrdersPage />} />
             <Route path="/order-history" element={<OrderHistoryPage />} />
 
-            <Route
-              path="/users"
-              element={<ComingSoon title="Manajemen User" />}
-            />
+            <Route path="/users" element={<UsersPage />} />
 
-            <Route
-              path="/reports"
-              element={<ComingSoon title="Laporan Penjualan" />}
-            />
+            <Route path="/reports" element={<ReportsPage />} />
           </Route>
         </Route>
 
