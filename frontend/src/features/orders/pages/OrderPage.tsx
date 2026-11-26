@@ -109,10 +109,16 @@ export default function OrdersPage() {
 
   const totalQuantity = cart.reduce((total, item) => total + item.quantity, 0);
 
-  const estimatedTotal = cart.reduce(
+  const subtotal = cart.reduce(
     (total, item) => total + item.product.price * item.quantity,
     0,
   );
+
+  const taxRate = 0.11;
+
+  const tax = Math.round(subtotal * taxRate);
+
+  const total = subtotal + tax;
 
   function addToCart(product: Product) {
     if (submitLock.current || product.stock <= 0) return;
@@ -467,14 +473,30 @@ export default function OrdersPage() {
           )}
 
           <div className="space-y-4 border-t bg-slate-50/60 p-5">
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-sm text-muted-foreground">
-                Estimasi Total
-              </span>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm text-muted-foreground">Subtotal</span>
 
-              <span className="text-xl font-bold text-primary">
-                {rupiah.format(estimatedTotal)}
-              </span>
+                <span className="text-sm font-semibold">
+                  {rupiah.format(subtotal)}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm text-muted-foreground">PPN 11%</span>
+
+                <span className="text-sm font-semibold">
+                  {rupiah.format(tax)}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between gap-3 border-t pt-3">
+                <span className="text-sm font-semibold">Total</span>
+
+                <span className="text-xl font-bold text-primary">
+                  {rupiah.format(total)}
+                </span>
+              </div>
             </div>
 
             <p className="text-xs leading-relaxed text-muted-foreground">
@@ -515,18 +537,30 @@ export default function OrdersPage() {
                 onPaid={(paidOrder) => {
                   setLastOrder(paidOrder);
                   setPaymentOrder(null);
+                  setDetailOrderId(paidOrder.id);
                 }}
               />
             )}
 
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full gap-2 rounded-xl"
-              onClick={() => setDetailOrderId(lastOrder.id)}
-            >
-              Lihat Detail Transaksi
-            </Button>
+            {lastOrder && (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full gap-2 rounded-xl"
+                onClick={() => setDetailOrderId(lastOrder.id)}
+              >
+                Lihat Detail Transaksi
+              </Button>
+            )}
+
+            {detailOrderId && (
+              <OrderDetailDialog
+                key={detailOrderId}
+                orderId={detailOrderId}
+                onClose={() => setDetailOrderId(null)}
+                onUpdated={() => setReloadKey((value) => value + 1)}
+              />
+            )}
           </div>
         </aside>
       </div>

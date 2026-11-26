@@ -1,15 +1,15 @@
 import api from "./axios";
+import type { PaginatedOrdersResponse } from "@/types/order";
 
 import type {
   CreateOrderInput,
   CreateOrderResponse,
-  Order,
   OrderDetailResponse,
   CancelOrderInput,
   CancelOrderResponse,
   CancelDecisionInput,
   PayOrderInput,
-  PayOrderResponse
+  PayOrderResponse,
 } from "@/types/order";
 
 export async function createOrder(data: CreateOrderInput) {
@@ -18,13 +18,12 @@ export async function createOrder(data: CreateOrderInput) {
   return response.data;
 }
 
-export async function getOrders() {
-  const response = await api.get<{
-    message: string;
-    orders: Order[];
-  }>("/orders");
+export async function getOrders(page = 1, limit = 10) {
+  const response = await api.get<PaginatedOrdersResponse>(
+    `/orders?page=${page}&limit=${limit}`,
+  );
 
-  return response.data.orders;
+  return response.data;
 }
 
 export async function getOrderDetail(id: string) {

@@ -191,20 +191,56 @@ router.post(
   },
 );
 
+// Aturan query pagination untuk daftar transaksi.
+const listOrdersSchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(50).default(10),
+});
+
 // GET /api/orders
+// Mengambil daftar transaksi dengan pagination.
 router.get(
   "/",
   authMiddleware,
   roleMiddleware(["ADMIN", "STAFF"]),
-  async (_req, res) => {
+  async (req, res) => {
     try {
+      const query = listOrdersSchema.parse(req.query);
+
       const orders = await db.orm.public.Order.all();
+
+      // Urutkan dari transaksi terbaru.
+      const sortedOrders = orders.sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
+
+      const total = sortedOrders.length;
+      const totalPages = Math.ceil(total / query.limit);
+
+      const startIndex = (query.page - 1) * query.limit;
+      const endIndex = startIndex + query.limit;
+
+      const paginatedOrders = sortedOrders.slice(startIndex, endIndex);
 
       return res.json({
         message: "Daftar transaksi berhasil diambil",
-        orders,
+        orders: paginatedOrders,
+        pagination: {
+          page: query.page,
+          limit: query.limit,
+          total,
+          totalPages,
+        },
       });
     } catch (error: unknown) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          message: "Parameter pagination tidak valid",
+          details: error.issues,
+        });
+      }
+
       if (error instanceof Error) {
         return res.status(500).json({
           message: error.message,

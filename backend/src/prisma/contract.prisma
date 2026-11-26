@@ -75,10 +75,7 @@ model Order {
   // Order ini dibuat oleh user tertentu.
   user User @relation(fields: [userId], references: [id])
 
-
-  // Satu order bisa memiliki banyak order item.
   items OrderItem[]
-
 
   @@map("orders")
 }

@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 import { isAxiosError } from "axios";
-import { CheckCircle2, History, XCircle, Banknote } from "lucide-react";
+import {
+  CheckCircle2,
+  History,
+  XCircle,
+  Banknote,
+  Printer,
+} from "lucide-react";
 import { useNavigate } from "react-router";
 
 import {
@@ -14,6 +20,7 @@ import type { OrderDetailResponse } from "@/types/order";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import PaymentDialog from "./PaymentDialog";
+import ReceiptPreviewDialog from "./ReceiptPreviewDialog";
 
 import {
   Dialog,
@@ -76,6 +83,7 @@ export default function OrderDetailDialog({
   const [decisionReason, setDecisionReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [isReceiptOpen, setIsReceiptOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -483,9 +491,34 @@ export default function OrderDetailDialog({
           </div>
         ) : null}
 
-        <Button variant="outline" className="mt-2 rounded-xl" onClick={onClose}>
-          Tutup
-        </Button>
+        <div className="flex flex-col gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            className="gap-2 rounded-xl"
+            disabled={!detail}
+            onClick={() => setIsReceiptOpen(true)}
+          >
+            <Printer className="size-4" />
+            Print Struk / Invoice
+          </Button>
+
+          <Button
+            type="button"
+            variant="outline"
+            className="rounded-xl"
+            onClick={onClose}
+          >
+            Tutup
+          </Button>
+        </div>
+
+        {isReceiptOpen && detail && (
+          <ReceiptPreviewDialog
+            detail={detail}
+            onClose={() => setIsReceiptOpen(false)}
+          />
+        )}
 
         {isPaymentOpen && order && (
           <PaymentDialog
@@ -503,3 +536,4 @@ export default function OrderDetailDialog({
     </Dialog>
   );
 }
+  

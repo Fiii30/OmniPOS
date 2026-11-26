@@ -115,3 +115,16 @@ export type StockFlowInput = {
   stock?: number;
   note?: string;
 };
+
+export type OrderPagination = {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+};
+
+export type PaginatedOrdersResponse = {
+  message: string;
+  orders: Order[];
+  pagination: OrderPagination;
+};

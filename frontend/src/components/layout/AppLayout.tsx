@@ -5,6 +5,7 @@ import {
   Monitor,
   Package,
   Receipt,
+  RotateCwClock,
   Users,
 } from "lucide-react";
 
@@ -29,7 +30,7 @@ const navigation = [
   {
     label: "Riwayat Transaksi",
     to: "/order-history",
-    icon: Receipt,
+    icon: RotateCwClock,
     adminOnly: false,
   },
   {

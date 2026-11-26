@@ -165,12 +165,7 @@
         rgb(96 165 250 / 28%),
         transparent 50%
       ),
-      linear-gradient(
-        145deg,
-        #2563eb 0%,
-        #205ce1 55%,
-        #3730a3 100%
-      );
+      linear-gradient(145deg, #2563eb 0%, #205ce1 55%, #3730a3 100%);
   }
 
   .omni-dot-pattern {
@@ -180,5 +175,61 @@
     );
 
     background-size: 22px 22px;
+  }
+}
+@media print {
+  @page {
+    size: 80mm auto;
+    margin: 6mm;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+
+  .print-area {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background: #ffffff !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  .print-area * {
+    background: transparent !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    border-color: #000000 !important;
+  }
+
+  .print-area h1,
+  .print-area h2,
+  .print-area h3,
+  .print-area p,
+  .print-area span,
+  .print-area div,
+  .print-area td,
+  .print-area th {
+    color: #000000 !important;
+  }
+
+  .print-hide,
+  .print-hide * {
+    display: none !important;
   }
 }
